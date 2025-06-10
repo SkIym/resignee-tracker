@@ -1,45 +1,5 @@
 <script>
-    import Table from "./lib/Table.svelte";
-</script>
-
-<main>
-  <div>
-    <!-- Search -->
-      <div class="flex flex-wrap gap-3 mb-4">
-        <div class="flex-1 min-w-[200px] relative">
-          <input 
-            type="text" 
-            placeholder="Search" 
-            class="w-full px-4 py-2 border border-gray-300 rounded-lg pl-10"
-          >
-          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-400 absolute left-3 top-2.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-          </svg>
-        </div>
-      </div>
-
-    <!-- Filter and Export -->
-     <div>
-
-     </div>
-
-    <!-- Table -->
-     <div>
-        <Table
-        />
-     </div>
-  </div>
-</main>
-
-<style>
-
-</style>
-
-<!--
-<script>
-  import svelteLogo from './assets/svelte.svg'
-  import viteLogo from '/vite.svg'
-  import Counter from './lib/Dashboard.svelte'
+  import Table from './lib/Table.svelte'
   import { onMount } from 'svelte';
 
   let employees = [];
@@ -57,27 +17,10 @@
 </script>
 
 <main>
-  <div>
-    <a href="https://vite.dev" target="_blank" rel="noreferrer">
-      <img src={viteLogo} class="logo" alt="Vite Logo" />
-    </a>
-    <a href="https://svelte.dev" target="_blank" rel="noreferrer">
-      <img src={svelteLogo} class="logo svelte" alt="Svelte Logo" />
-    </a>
-  </div>
-  <h1>Vite + Svelte</h1>
 
   <div class="card">
-    <Counter />
+    <Table />
   </div>
-
-  <p>
-    Check out <a href="https://github.com/sveltejs/kit#readme" target="_blank" rel="noreferrer">SvelteKit</a>, the official Svelte app framework powered by Vite!
-  </p>
-
-  <p class="read-the-docs">
-    Click on the Vite and Svelte logos to learn more
-  </p>
 
   <h1>Resigned Employees</h1>
   {#if error}
@@ -110,4 +53,3 @@
     color: #888;
   }
 </style>
--->
