@@ -1,7 +1,21 @@
-<script lang="ts">
+<script>
   import svelteLogo from './assets/svelte.svg'
   import viteLogo from '/vite.svg'
   import Counter from './lib/Counter.svelte'
+  import { onMount } from 'svelte';
+
+  let employees = [];
+  let error = '';
+
+  onMount(async () => {
+    try {
+      const res = await fetch('http://localhost:8000/ResignedEmployees');
+      if (!res.ok) throw new Error(await res.text());
+      employees = await res.json();
+    } catch (e) {
+      error = e.message;
+    }
+  });
 </script>
 
 <main>
@@ -26,6 +40,19 @@
   <p class="read-the-docs">
     Click on the Vite and Svelte logos to learn more
   </p>
+
+  <h1>Resigned Employees</h1>
+  {#if error}
+    <p style="color: red">{error}</p>
+  {:else if employees.length === 0}
+    <p>No data found.</p>
+  {:else}
+    <ul>
+      {#each employees as emp}
+        <li>{emp.employee_num} ({emp.lastname})</li>
+      {/each}
+    </ul>
+  {/if}
 </main>
 
 <style>
