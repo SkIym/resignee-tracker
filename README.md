@@ -71,3 +71,10 @@
     uvicorn app:app --reload
 
     ```
+
+# How to run:
+1. cd to backend folder and run `pip install -r requirements.txt`
+2. cd to src folder and run `uvicorn app:app`
+3. go back to original repo and run `npm create vite@latest frontend -- --template svelte
+4. `cd frontend`
+5. `npm install`
