@@ -1,11 +1,14 @@
 <script>
+  import EmployeeTable from './lib/EmployeeTable.svelte';
   import { onMount } from 'svelte';
 
-  import EmployeeTable from './lib/EmployeeTable.svelte'
   // import ExportButton from './lib/ExportButton.svelte'
   // import FilterButton from './lib/FilterButton.svelte'
   import SearchBar from './lib/SearchBar.svelte'
   // import SortAndFilterDropdownButton from './lib/SortAndFilterDropdownButton.svelte'
+  import SortAndFilterDropdownButton from './lib/SortAndFilterDropdownButton.svelte';
+  import ExportButton from './lib/ExportButton.svelte';
+  import FilterButton from './lib/FilterButton.svelte';
 
   let employees = [];
   let filteredEmployees = [];
@@ -146,6 +149,34 @@
       </div>
     {/if}
   </div>
+  <!-- <SortAndFilterDropdownButton/> -->
+
+  <!-- Table -->
+  <!-- <div class="card">
+    <Table />
+  </div> -->
+
+
+
+  <!-- Export Button -->
+  <ExportButton data={employees} />
+
+ <!-- Filter Button -->
+  <FilterButton on:filter={handleFilter} />
+
+
+  <h1>Resigned Employees</h1>
+  {#if error}
+    <p style="color: red">{error}</p>
+  {:else if employees.length === 0}
+    <p>No data found.</p>
+  {:else}
+    <ul>
+      {#each employees as emp}
+        <li>{emp.employee_num} ({emp.lastname})</li>
+      {/each}
+    </ul>
+  {/if}
 </main>
 
 <style>
