@@ -1,8 +1,9 @@
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from supabase_client import supabase
+from routes import router
 
-app = FastAPI()
+app = FastAPI(swagger_ui_parameters={"syntaxHighlight": {"theme": "obsidian"}})
 
 app.add_middleware(
     CORSMiddleware,
@@ -12,18 +13,5 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-@app.get("/ResignedEmployees")
-def get_items():
-    try:
-        response = supabase.table("ResignedEmployees").select("*").execute()
-        return response.data
-    except Exception as e:
-        raise HTTPException(status_code=400, detail=str(e))
+app.include_router(router)
 
-@app.post("/ResignedEmployees")
-def create_item(item: dict):
-    try:
-        response = supabase.table("ResignedEmployees").insert(item).execute()
-        return response.data
-    except Exception as e:
-        raise HTTPException(status_code=400, detail=str(e))
