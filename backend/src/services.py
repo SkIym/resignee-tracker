@@ -36,3 +36,4 @@ def parse_resignee_text(raw_text: str):
     return employees
 
 # Encoding data to XCEL file function (for reports)
+

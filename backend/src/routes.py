@@ -2,7 +2,7 @@
 from fastapi import APIRouter, HTTPException, Body, Path
 from schemas import ResigneeDisplay, ResigneeCreate
 from services import parse_resignee_text
-from datetime import datetime, date
+from datetime import datetime
 from supabase_client import supabase
 
 router = APIRouter()
@@ -101,7 +101,7 @@ async def get_excel_report(start_date: str, end_date: str):
             .gte("processed_date_time", start_date) \
             .execute()
         
-        if response.data and len (response.data) > 0:
+        if response.data and len(response.data) > 0:
             return response.data
         else:
             raise HTTPException(status_code=404, detail="There were no resignees processed within the given period")
