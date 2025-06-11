@@ -1,7 +1,7 @@
 <script>
   import { onMount } from 'svelte';
 
-  // import EmployeeTable from './lib/EmployeeTable.svelte'
+  import EmployeeTable from './lib/EmployeeTable.svelte'
   // import ExportButton from './lib/ExportButton.svelte'
   // import FilterButton from './lib/FilterButton.svelte'
   import SearchBar from './lib/SearchBar.svelte'
@@ -135,7 +135,7 @@
           </div>
         </div>
       {:else}
-        <!-- <EmployeeTable employees={filteredEmployees} /> -->
+        <EmployeeTable employees={filteredEmployees} />
       {/if}
     </div>
 
