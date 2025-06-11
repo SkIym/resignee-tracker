@@ -4,6 +4,9 @@ from schemas import ResigneeDisplay, ResigneeCreate
 from services import parse_resignee_text
 from datetime import datetime
 from supabase_client import supabase
+from io import BytesIO
+from fastapi.responses import Response
+import xlsxwriter
 
 router = APIRouter()
 
@@ -91,7 +94,7 @@ async def mark_resignee_processed(
         raise HTTPException(status_code=400, detail=str(e))
 
 # Endpoint serving report of processed resignees within a selected timeframe
-@router.get("/resignees/report")
+@router.get("/resignees/export")
 async def get_excel_report(start_date: str, end_date: str):
 
     try:
@@ -102,7 +105,39 @@ async def get_excel_report(start_date: str, end_date: str):
             .execute()
         
         if response.data and len(response.data) > 0:
-            return response.data
+            excel_file = BytesIO()
+            workbook = xlsxwriter.Workbook(excel_file)
+
+            worksheet = workbook.add_worksheet()
+            headers = ["Employee no.", "Date hired", "Cost center", "Last Name", "First Name", "Middle Name", "Position Title", "Rank", "Department", "Last day with AUB", "Date processed"]
+
+            worksheet.write_row(0, 0, headers)
+            i = 1
+            for entry in response.data:
+
+                details = [entry['employee_no'],
+                entry['date_hired'],
+                entry['cost_center'],
+                entry['last_name'],
+                entry['first_name'], 
+                entry['middle_name'],
+                entry['position_title'],
+                entry['rank'],
+                entry['department'],
+                entry['last_day'],
+                entry['processed_date_time']]
+                worksheet.write_row(i, 0, details)
+                i += 1
+                
+            workbook.close()
+
+            excel_file.seek(0)
+
+            return Response(
+                content=excel_file.read(),
+                media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                headers={"Content-Disposition": "attachment; filename=export.xlsx"},
+            )
         else:
             raise HTTPException(status_code=404, detail="There were no resignees processed within the given period")
     

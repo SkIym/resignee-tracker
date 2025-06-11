@@ -2,6 +2,8 @@
 
 # Parsing function (from raw text from email to labeled data)
 from schemas import ResigneeCreate
+import xlsxwriter
+from io import BytesIO
 
 def parse_resignee_text(raw_text: str):
     """
@@ -36,4 +38,15 @@ def parse_resignee_text(raw_text: str):
     return employees
 
 # Encoding data to XCEL file function (for reports)
+# def to_xlsx(resignees: list[ResigneeCreate], file: BytesIO):
+#     try:
+#         workbook = xlsxwriter.Workbook(file)
+#         worksheet = workbook.add_worksheet()
+#         headers = ["Employee no.", "Date hired", "Cost center", "Last Name", "First Name", "Middle Name", "Position Title", "Rank", "Department", "Last day with AUB"]
+#         worksheet.write(0, 0, headers)
 
+#         workbook.close()
+
+#         file.seek(0)
+
+#         return 
