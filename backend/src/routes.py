@@ -33,8 +33,8 @@ async def add_resignees(resignees: str = Body(..., media_type="text/plain")):
 
             to_db = ResigneeCreate(
                 **entry.model_dump(exclude={'date_hired', 'last_day'}),
-                date_hired=datetime.strptime(entry.date_hired, "%m/%d/%y").strftime("%Y-%m-%d"),
-                last_day=datetime.strptime(entry.last_day, "%m/%d/%y").strftime("%Y-%m-%d")
+                date_hired=datetime.strptime(entry.date_hired, "%m/%d/%Y").strftime("%Y-%m-%d"),
+                last_day=datetime.strptime(entry.last_day, "%m/%d/%Y").strftime("%Y-%m-%d")
             )
             print(to_db)
             supabase.table("ResignedEmployees").insert(to_db.model_dump()).execute()
