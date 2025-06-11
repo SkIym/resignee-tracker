@@ -33,7 +33,7 @@
     display: flex;
     align-items: center;
     gap: 0.5rem;
-    font-family: 'Inter', sans-serif;
+    font-family: 'Open Sans', sans-serif;
     transition: background-color 0.2s, color 0.2s;
   }
 
@@ -45,7 +45,7 @@
     width: 1.5rem;
     height: 1.5rem;
     stroke: black;
-    stroke-width: 2;
+    stroke-width: 1.5;
   }
 
 
