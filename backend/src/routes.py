@@ -91,3 +91,20 @@ async def mark_resignee_processed(
         raise HTTPException(status_code=400, detail=str(e))
 
 # Endpoint serving report of processed resignees within a selected timeframe
+@router.get("/resignees/report")
+async def get_excel_report(start_date: str, end_date: str):
+
+    try:
+        response = supabase.table("ResignedEmployees") \
+            .select("*") \
+            .lte("processed_date_time", end_date) \
+            .gte("processed_date_time", start_date) \
+            .execute()
+        
+        if response.data and len (response.data) > 0:
+            return response.data
+        else:
+            raise HTTPException(status_code=404, detail="There were no resignees processed within the given period")
+    
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))

@@ -28,7 +28,7 @@ def parse_resignee_text(raw_text: str):
                 rank=chunk[7],
                 department=chunk[8],
                 last_day=chunk[9],
-                processed_date= None
+                processed_date_time= None
             )
             employees.append(employee)
         except Exception:
