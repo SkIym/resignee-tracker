@@ -119,9 +119,11 @@
     <div class="flex flex-wrap items-center justify-between gap-4 mb-6">
       <div class="flex items-center gap-4 flex-1">
         <SearchBar onsearch={handleSearch} />
-        <!-- <FilterButton onfilter={handleFilter} /> -->
       </div>
-      <!-- <ExportButton onexport={handleExport} /> -->
+      <div class="flex gap-2">
+        <FilterButton on:filter={handleFilter} />
+        <ExportButton data={employees} />
+        </div>
     </div>
 
     <!-- Table Container -->
@@ -149,21 +151,6 @@
       </div>
     {/if}
   </div>
-  <!-- <SortAndFilterDropdownButton/> -->
-
-  <!-- Table -->
-  <!-- <div class="card">
-    <Table />
-  </div> -->
-
-
-
-  <!-- Export Button -->
-  <ExportButton data={employees} />
-
- <!-- Filter Button -->
-  <FilterButton on:filter={handleFilter} />
-
 
   <h1>Resigned Employees</h1>
   {#if error}
