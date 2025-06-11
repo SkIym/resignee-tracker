@@ -3,7 +3,7 @@ from pydantic import BaseModel
 class ResigneeDisplay(BaseModel):
     employee_no: int
     date_hired: str
-    cost_center: str
+    cost_center: int
     name: str
     position_title: str
     rank: str
@@ -14,7 +14,7 @@ class ResigneeDisplay(BaseModel):
 class ResigneeCreate(BaseModel):
     employee_no: int
     date_hired: str
-    cost_center: str
+    cost_center: int
     last_name: str
     first_name: str
     middle_name: str
