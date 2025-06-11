@@ -97,7 +97,7 @@ async def mark_resignee_processed(
         raise HTTPException(status_code=400, detail=str(e))
 
 # Endpoint serving report of processed resignees within a selected timeframe
-@router.get("/resignees/export")
+@router.get("/resignees/report")
 async def get_excel_report(start_date: str, end_date: str):
 
     try:
