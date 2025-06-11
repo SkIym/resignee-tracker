@@ -46,9 +46,12 @@ async def add_resignees(resignees: str = Body(..., media_type="text/plain")):
 
 # Endpoint serving list of unprocessed resignees to client (frontend) 
 @router.get('/resignees')
-async def get_all_resignees():
+async def get_all_unprocessed_resignees():
     try:
-        response = supabase.table("ResignedEmployees").select("*").execute()
+        response = supabase.table("ResignedEmployees") \
+            .select("*") \
+            .is_("processed_date_time", "null") \
+            .execute()
 
         cleaned_entries: list[ResigneeDisplay] = []
 
