@@ -1,11 +1,7 @@
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from supabase_client import supabase
-<<<<<<< HEAD
-from datetime import datetime
-=======
 from routes import router
->>>>>>> 255e889bc1a9904196ebc0e20f2f922b8206e0b7
 
 app = FastAPI(swagger_ui_parameters={"syntaxHighlight": {"theme": "obsidian"}})
 
