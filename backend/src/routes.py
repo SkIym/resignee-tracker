@@ -7,6 +7,7 @@ from supabase_client import supabase
 from io import BytesIO
 from fastapi.responses import Response
 import xlsxwriter
+from datetime import timedelta
 
 router = APIRouter()
 
@@ -32,8 +33,8 @@ async def add_resignees(resignees: str = Body(..., media_type="text/plain")):
 
             to_db = ResigneeCreate(
                 **entry.model_dump(exclude={'date_hired', 'last_day'}),
-                date_hired=datetime.strptime(entry.date_hired, "%m/%d/%y").strftime("%Y-%m-%d"),
-                last_day=datetime.strptime(entry.last_day, "%m/%d/%y").strftime("%Y-%m-%d")
+                date_hired=datetime.strptime(entry.date_hired, "%m/%d/%Y").strftime("%Y-%m-%d"),
+                last_day=datetime.strptime(entry.last_day, "%m/%d/%Y").strftime("%Y-%m-%d")
             )
             print(to_db)
             supabase.table("ResignedEmployees").insert(to_db.model_dump()).execute()
@@ -52,10 +53,21 @@ async def get_all_unprocessed_resignees():
             .select("*") \
             .is_("processed_date_time", "null") \
             .execute()
+        
+        to_display = response.data
+        past_day_date = (datetime.now() - timedelta(days=1)).isoformat()
+
+        response = supabase.table("ResignedEmployees") \
+            .select("*") \
+            .not_.is_("processed_date_time", "null") \
+            .gte("processed_date_time", past_day_date) \
+            .execute()
+
+        to_display.extend(response.data)      
 
         cleaned_entries: list[ResigneeDisplay] = []
 
-        for entry in response.data:
+        for entry in to_display:
 
             cleaned_entries.append(ResigneeDisplay(
                 employee_no=entry['employee_no'],
