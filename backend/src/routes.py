@@ -1,8 +1,8 @@
 # list endpoints here
-from fastapi import APIRouter, HTTPException, Body
+from fastapi import APIRouter, HTTPException, Body, Path
 from schemas import ResigneeDisplay, ResigneeCreate
 from services import parse_resignee_text
-from datetime import datetime
+from datetime import datetime, date
 from supabase_client import supabase
 
 router = APIRouter()
@@ -60,7 +60,7 @@ async def get_all_resignees():
                 rank=entry['rank'],
                 department=entry['department'],
                 last_day=entry['last_day'],
-                processed_date=entry['processed_date']
+                processed_date_time=entry['processed_date_time']
             ))
 
         return cleaned_entries
@@ -69,5 +69,25 @@ async def get_all_resignees():
         raise HTTPException(status_code=400, detail=str(e))
 
 # Endpoint to mark resignation entry as processed (will now not be returned to client )
+
+@router.put("/resignees/{employee_no}/process")
+async def mark_resignee_processed(
+    employee_no: int = Path(..., description="Employee number to mark as processed")
+):
+    """
+    Mark a resignee as processed by setting the processed_date_time to now.
+    """
+    try:
+        now = datetime.now().isoformat()
+        response = supabase.table("ResignedEmployees") \
+            .update({"processed_date_time": now}) \
+            .eq("employee_no", employee_no) \
+            .execute()
+        if response.data and len(response.data) > 0:
+            return {"message": f"Employee {employee_no} marked as processed.", "processed_date_time": now}
+        else:
+            raise HTTPException(status_code=404, detail="Employee not found")
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
 
 # Endpoint serving report of processed resignees within a selected timeframe
