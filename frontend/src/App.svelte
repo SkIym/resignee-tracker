@@ -36,23 +36,23 @@
       rank: 'NA',
       department: 'Operations & IT',
       last_day: '2025-07-04',
-      status: 'processed'
+      status: 'unprocessed'
     },
     {
       employee_no: '00003',
       date_hired: '2025-06-11',
-      cost_center: 'CC001',
-      name: 'Abram Josh Marcelo',
+      cost_center: 'CC002',
+      name: 'Abram Marcelo',
       position_title: 'IT Risk Management Intern',
       rank: 'NA',
       department: 'Operations & IT',
       last_day: '2025-07-04',
-      status: 'processed'
+      status: 'unprocessed'
     },
     {
       employee_no: '00004',
       date_hired: '2025-06-11',
-      cost_center: 'CC001',
+      cost_center: 'CC002',
       name: 'Nate Feliciano',
       position_title: 'IT Risk Management Intern',
       rank: 'NA',
