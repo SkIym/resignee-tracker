@@ -1,8 +1,9 @@
 <script>
-  import Table from './lib/Table.svelte'
+  import EmployeeTable from './lib/EmployeeTable.svelte';
   import { onMount } from 'svelte';
 
   import SortAndFilterDropdownButton from './lib/SortAndFilterDropdownButton.svelte';
+  import ExportButton from './lib/ExportButton.svelte';
 
   let employees = [];
   let error = '';
@@ -36,12 +37,19 @@
     </div>
   </div>
 
-  <SortAndFilterDropdownButton/>
+  <!-- <SortAndFilterDropdownButton/> -->
 
   <!-- Table -->
-  <div class="card">
+  <!-- <div class="card">
     <Table />
-  </div>
+  </div> -->
+
+
+
+  <!-- Export Button -->
+  <ExportButton data={employees} />
+
+
 
   <h1>Resigned Employees</h1>
   {#if error}
