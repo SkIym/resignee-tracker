@@ -104,7 +104,7 @@
   }
 
   function handleFilter(event) {
-    statusFilter = event.filter;
+    filteredEmployees = event.detail.filtered;
   }
 
   function handleExport(event) {
@@ -121,7 +121,7 @@
         <SearchBar onsearch={handleSearch} />
       </div>
       <div class="flex gap-2">
-        <FilterButton on:filter={handleFilter} />
+        <FilterButton on:filter={handleFilter} employees={employees} />
         <ExportButton data={employees} />
         </div>
     </div>

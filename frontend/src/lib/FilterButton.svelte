@@ -1,9 +1,13 @@
 <script lang="ts">
+  import { createEventDispatcher } from 'svelte';
+  export let employees: Array<Record<string, any>> = [];
+  const dispatch = createEventDispatcher();
+
   let isOpen = false;
   let selectedField = '';
   let inputValue = '';
   let activeFilters: { field: string, value: string }[] = [];
-
+  
   const fields = [
     "Employee no.",
     "Date hired",
@@ -25,11 +29,13 @@
     inputValue = '';
   }
 
+
   function addFilter() {
     if (selectedField && inputValue) {
       const exists = activeFilters.find(f => f.field === selectedField && f.value === inputValue);
       if (!exists) {
         activeFilters = [...activeFilters, { field: selectedField, value: inputValue }];
+        applyFilters();
       }
       selectedField = '';
       inputValue = '';
@@ -38,6 +44,7 @@
 
    function removeFilter(index: number) {
     activeFilters = activeFilters.filter((_, i) => i !== index);
+    applyFilters();
   }
 
   function closeDropdown() {
@@ -49,7 +56,37 @@
 
   function clearAllFilters() {
     activeFilters = [];
+    applyFilters();
   }
+
+  function applyFilters() {
+  let filtered = employees;
+
+  activeFilters.forEach(filter => {
+    const key = mapFieldToKey(filter.field);
+    filtered = filtered.filter(emp =>
+      emp[key]?.toLowerCase().includes(filter.value.toLowerCase())
+    );
+  });
+
+  dispatch('filter', { filtered });
+}
+
+function mapFieldToKey(field: string): string {
+  const map: Record<string, string> = {
+    "Employee no.": "employee_no",
+    "Date hired": "date_hired",
+    "Cost center": "cost_center",
+    "Name": "name",
+    "Position": "position_title",
+    "Rank": "rank",
+    "Department": "department",
+    "Last day": "last_day",
+    "Status": "status"
+  };
+  return map[field] || field;
+}
+
 </script>
 
 <style>
