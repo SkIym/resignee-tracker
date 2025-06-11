@@ -111,6 +111,26 @@
     //
   }
 
+  let message = '';
+  let response = '';
+
+  async function submitMessage() {
+    const res = await fetch('/api/submit', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ message })
+    });
+
+    if (res.ok) {
+      const data = await res.json();
+      response = data.status;
+    } else {
+      response = 'Error submitting';
+    }
+  }
+
 </script>
 
 <main class="min-h-screen bg-gray-50 p-6">
@@ -151,6 +171,23 @@
       </div>
     {/if}
   </div>
+
+  <!-- Input field -->
+<div class="max-w-7xl mx-auto mb-6">
+  <textarea
+    bind:value={message}
+    rows="5"
+    class="block w-full p-4 text-gray-900 border border-gray-300 rounded-lg bg-white text-base resize-y"
+  ></textarea>
+  <button
+    on:click={submitMessage}
+    class="mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg"
+  >
+    Submit
+  </button>
+  <p class="mt-2 text-sm text-gray-700">{response}</p>
+</div>
+
 
   <h1>Resigned Employees</h1>
   {#if error}
