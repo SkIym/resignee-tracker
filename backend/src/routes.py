@@ -114,7 +114,6 @@ async def get_excel_report(start_date: str, end_date: str):
             worksheet.write_row(0, 0, headers)
             i = 1
             for entry in response.data:
-
                 details = [entry['employee_no'],
                 entry['date_hired'],
                 entry['cost_center'],
@@ -125,10 +124,10 @@ async def get_excel_report(start_date: str, end_date: str):
                 entry['rank'],
                 entry['department'],
                 entry['last_day'],
-                entry['processed_date_time']]
+                datetime.fromisoformat(entry['processed_date_time'].replace("Z", "+00:00")).strftime("%B %d, %Y %I:%M %p")]
                 worksheet.write_row(i, 0, details)
                 i += 1
-                
+
             workbook.close()
 
             excel_file.seek(0)
