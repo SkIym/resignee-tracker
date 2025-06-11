@@ -2,13 +2,13 @@
   import EmployeeTable from './lib/EmployeeTable.svelte';
   import { onMount } from 'svelte';
 
-  import EmployeeTable from './lib/EmployeeTable.svelte'
   // import ExportButton from './lib/ExportButton.svelte'
   // import FilterButton from './lib/FilterButton.svelte'
   import SearchBar from './lib/SearchBar.svelte'
   // import SortAndFilterDropdownButton from './lib/SortAndFilterDropdownButton.svelte'
   import SortAndFilterDropdownButton from './lib/SortAndFilterDropdownButton.svelte';
   import ExportButton from './lib/ExportButton.svelte';
+  import FilterButton from './lib/FilterButton.svelte';
 
   let employees = [];
   let filteredEmployees = [];
@@ -161,6 +161,8 @@
   <!-- Export Button -->
   <ExportButton data={employees} />
 
+ <!-- Filter Button -->
+  <FilterButton on:filter={handleFilter} />
 
 
   <h1>Resigned Employees</h1>
