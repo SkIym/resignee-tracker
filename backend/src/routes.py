@@ -14,7 +14,7 @@ from crypto_utils import encrypt_field, decrypt_field
 import jwt
 import os
 import hashlib
-
+    
 router = APIRouter()
 
 def hash_employee_no(employee_no: str) -> str:
@@ -26,14 +26,26 @@ async def add_resignees(resignees: str = Body(..., media_type="text/plain")):
     """
     Handle raw resignee details and return parsed data per employee.
     Encrypt all fields except dates/timestamps before storing.
+    Raise error if employee_no is not unique.
     """
     
     try:
         entries: list[ResigneeCreate] = parse_resignee_text(resignees)
         cleaned_entries: list[ResigneeDisplay] = []
+
         for entry in entries:
             employee_no_hash = hash_employee_no(entry.employee_no)
-            # Encrypt only the fields that exist in the table and are not dates
+            # Check for duplicate
+            existing = supabase.table("ResignedEmployees") \
+                .select("employee_no_hash") \
+                .eq("employee_no_hash", employee_no_hash) \
+                .execute()
+            if existing.data and len(existing.data) > 0:
+                raise HTTPException(
+                    status_code=400,
+                    detail=f"Duplicate employee_no detected: {entry.employee_no}"
+                )
+
             encrypted_data = {
                 "employee_no": encrypt_field(entry.employee_no),
                 "employee_no_hash": employee_no_hash,
@@ -48,7 +60,6 @@ async def add_resignees(resignees: str = Body(..., media_type="text/plain")):
                 "last_day": datetime.strptime(entry.last_day, "%m/%d/%Y").strftime("%Y-%m-%d"),
                 "processed_date_time": None
             }
-            print("Inserting encrypted:", encrypted_data)
             supabase.table("ResignedEmployees").insert(encrypted_data).execute()
 
             # For formatting the name field in the response only
@@ -250,12 +261,26 @@ async def login(response: Response, username: str = Form(...), password: str = F
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
+@router.post("/logout")
+async def logout(response: Response):
+    response.delete_cookie("access_token")
+    return {"message": "Successfully logged out"}
+
 @router.post("/accounts")
 async def create_account(username: str = Form(...), password: str = Form(...)):
     """
     Create a new account with encrypted password.
+    Ensures no duplicate usernames.
     """
     try:
+        # Check for duplicate username
+        existing = supabase.table("Accounts") \
+            .select("username") \
+            .eq("username", username) \
+            .execute()
+        if existing.data and len(existing.data) > 0:
+            raise HTTPException(status_code=400, detail="Username already exists")
+
         encrypted_password = encrypt_field(password)
         response = supabase.table("Accounts") \
             .insert({"username": username, "password": encrypted_password}) \

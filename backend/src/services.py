@@ -6,6 +6,11 @@ from io import BytesIO
 import xlsxwriter
 from datetime import datetime
 from typing import Sequence, Mapping, Any
+from fastapi.requests import Request
+from fastapi import HTTPException
+import jwt
+import os
+from jwt import PyJWTError
 
 def parse_resignee_text(raw_text: str) -> list[ResigneeCreate]:
     """
@@ -67,3 +72,16 @@ def generate_report(file: BytesIO, data: Sequence[Mapping[str, Any]]) -> None:
 
     worksheet.autofit()
     workbook.close()
+
+async def verify_token(token: str):
+    secret_key = os.getenv("JWT_SECRET_KEY")
+    if not secret_key:
+        raise ValueError("SECRET_KEY not found in environment variables")
+    
+    # print(jwt.decode(token, secret_key, "HS256"))
+    try:
+        token_data = jwt.decode(token[7:], secret_key, algorithms=["HS256"]) # Remove "Bearer "
+        print(token_data)
+        return token_data
+    except jwt.PyJWTError as e:
+        return None
