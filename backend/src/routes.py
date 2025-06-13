@@ -261,6 +261,11 @@ async def login(response: Response, username: str = Form(...), password: str = F
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
+@router.post("/logout")
+async def logout(response: Response):
+    response.delete_cookie("access_token")
+    return {"message": "Successfully logged out"}
+
 @router.post("/accounts")
 async def create_account(username: str = Form(...), password: str = Form(...)):
     """
