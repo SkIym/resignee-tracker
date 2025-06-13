@@ -22,9 +22,9 @@ def parse_resignee_text(raw_text: str) -> list[ResigneeCreate]:
             continue
         try:
             employee = ResigneeCreate(
-                employee_no=int(chunk[0]),
+                employee_no=chunk[0],
                 date_hired=chunk[1],
-                cost_center=int(chunk[2]),
+                cost_center=chunk[2],
                 last_name=chunk[3],
                 first_name=chunk[4],
                 middle_name=chunk[5],
