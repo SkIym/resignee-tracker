@@ -96,7 +96,7 @@ function mapFieldToKey(field: string): string {
   }
 
   .filter-button {
-    padding: 0.5rem 1.5rem;
+    padding: 0.25rem 1.25rem;
     background-color: white;
     color: black;
     border: 1.25px solid #d1d5db;
