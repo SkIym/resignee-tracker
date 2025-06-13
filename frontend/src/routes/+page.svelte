@@ -214,19 +214,6 @@
 		{/if}
 	</div>
 	</form>
-
-  <h1>Resigned Employees</h1>
-  {#if error}
-    <p style="color: red">{error}</p>
-  {:else if employees.length === 0}
-    <p>No data found.</p>
-  {:else}
-    <ul>
-      {#each employees as emp}
-        <li>{String(emp.employee_no || '')} ({String(emp.last_name || '')})</li>
-      {/each}
-    </ul>
-  {/if}
 </main>
 
 <style>
