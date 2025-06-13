@@ -1,14 +1,9 @@
 <script>
-  import EmployeeTable from './lib/EmployeeTable.svelte';
   import { onMount } from 'svelte';
-
-  // import ExportButton from './lib/ExportButton.svelte'
-  // import FilterButton from './lib/FilterButton.svelte'
+  import EmployeeTable from './lib/EmployeeTable.svelte';
   import SearchBar from './lib/SearchBar.svelte'
-  // import SortAndFilterDropdownButton from './lib/SortAndFilterDropdownButton.svelte'
-  import SortAndFilterDropdownButton from './lib/SortAndFilterDropdownButton.svelte';
-  import ExportButton from './lib/ExportButton.svelte';
   import FilterButton from './lib/FilterButton.svelte';
+  import ExportCalendarButton from './lib/ExportCalendarButton.svelte';
 
   let employees = [];
   let filteredEmployees = [];
@@ -164,7 +159,7 @@
       </div>
       <div class="flex gap-2">
         <FilterButton on:filter={handleFilter} employees={employees} />
-        <ExportButton data={employees} />
+        <ExportCalendarButton data={employees} />
         </div>
     </div>
 
