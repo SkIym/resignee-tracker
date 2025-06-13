@@ -11,6 +11,8 @@ from io import BytesIO
 from fastapi.responses import Response
 from datetime import timedelta
 from crypto_utils import encrypt_field, decrypt_field
+import jwt
+import os
 import hashlib
 
 router = APIRouter()
@@ -26,7 +28,7 @@ async def add_resignees(resignees: str = Body(..., media_type="text/plain")):
     Encrypt all fields except dates/timestamps before storing.
     Raise error if employee_no is not unique.
     """
-    print(resignees)
+    
     try:
         entries: list[ResigneeCreate] = parse_resignee_text(resignees)
         cleaned_entries: list[ResigneeDisplay] = []
@@ -213,26 +215,51 @@ async def get_excel_report(start_date: str, end_date: str):
         raise HTTPException(status_code=400, detail=str(e))
 
 @router.post("/login")
-async def login(username: str = Form(...), password: str = Form(...)):
+async def login(response: Response, username: str = Form(...), password: str = Form(...)):
     """
     Login endpoint for Accounts table.
     """
     try:
-        response = supabase.table("Accounts") \
+        db_response = supabase.table("Accounts") \
             .select("*") \
             .eq("username", username) \
             .execute()
-        if response.data and len(response.data) > 0:
-            account = response.data[0]
-            decrypted_password = decrypt_field(account["password"])
-            if password == decrypted_password:
-                return {"message": "Login successful"}
-            else:
-                return {"message": "Login failed: Invalid username or password"}
-        else:
-            return {"message": "Login failed: Invalid username or password"}
+        print(db_response)
+        if not db_response.data or len(db_response.data) == 0:
+            raise HTTPException(status_code=401, detail="Invalid username or password")
+        
+        account = db_response.data[0]  
+        decrypted_password = decrypt_field(account["password"])
+
+        if password != decrypted_password:
+            raise HTTPException(status_code=401, detail="Invalid username or password")
+        
+        token_data = {
+            "sub": username,
+            "exp": datetime.now() + timedelta(hours=12)
+        }
+
+        secret_key = os.getenv("JWT_SECRET_KEY")
+        if not secret_key:
+            raise ValueError("SECRET_KEY not found in environment variables")
+
+        token = jwt.encode(token_data, secret_key, "HS256")
+        
+        response.set_cookie(
+            key="access_token",
+            value=f"Bearer {token}",
+            httponly=True,
+            max_age=3600 * 12,
+            secure=False,  # For HTTPS, toggle to True
+            samesite="lax"
+        )
+
+        print(response.headers)
+        
+        return {"message": "Login successful"}
+        
     except Exception as e:
-        raise HTTPException(status_code=400, detail=str(e))
+        raise HTTPException(status_code=500, detail=str(e))
 
 @router.post("/accounts")
 async def create_account(username: str = Form(...), password: str = Form(...)):
