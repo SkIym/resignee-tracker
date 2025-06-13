@@ -24,6 +24,7 @@ async def add_resignees(resignees: str = Body(..., media_type="text/plain")):
     """
     Handle raw resignee details and return parsed data per employee.
     Encrypt all fields except dates/timestamps before storing.
+    Raise error if employee_no is not unique.
     """
     print(resignees)
     try:
@@ -32,7 +33,17 @@ async def add_resignees(resignees: str = Body(..., media_type="text/plain")):
 
         for entry in entries:
             employee_no_hash = hash_employee_no(entry.employee_no)
-            # Encrypt only the fields that exist in the table and are not dates
+            # Check for duplicate
+            existing = supabase.table("ResignedEmployees") \
+                .select("employee_no_hash") \
+                .eq("employee_no_hash", employee_no_hash) \
+                .execute()
+            if existing.data and len(existing.data) > 0:
+                raise HTTPException(
+                    status_code=400,
+                    detail=f"Duplicate employee_no detected: {entry.employee_no}"
+                )
+
             encrypted_data = {
                 "employee_no": encrypt_field(entry.employee_no),
                 "employee_no_hash": employee_no_hash,
@@ -47,7 +58,6 @@ async def add_resignees(resignees: str = Body(..., media_type="text/plain")):
                 "last_day": datetime.strptime(entry.last_day, "%m/%d/%Y").strftime("%Y-%m-%d"),
                 "processed_date_time": None
             }
-            print("Inserting encrypted:", encrypted_data)
             supabase.table("ResignedEmployees").insert(encrypted_data).execute()
 
             # For formatting the name field in the response only
