@@ -267,12 +267,19 @@ async def logout(response: Response):
     return {"message": "Successfully logged out"}
 
 @router.post("/accounts")
-async def create_account(username: str = Form(...), password: str = Form(...)):
+async def create_account(
+    username: str = Form(...),
+    password: str = Form(...),
+    confirm_password: str = Form(...)
+):
     """
     Create a new account with encrypted password.
-    Ensures no duplicate usernames.
+    Ensures no duplicate usernames and that passwords match.
     """
     try:
+        if password != confirm_password:
+            raise HTTPException(status_code=400, detail="Passwords do not match")
+
         # Check for duplicate username
         existing = supabase.table("Accounts") \
             .select("username") \
