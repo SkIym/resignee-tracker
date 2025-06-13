@@ -205,14 +205,6 @@
       margin: 0;
     }
     
-    .chevron {
-      width: 20px;
-      height: 20px;
-      stroke: currentColor;
-      stroke-width: 2;
-      fill: none;
-    }
-    
     .grid-options {
       padding: 0 16px 16px;
       display: grid;

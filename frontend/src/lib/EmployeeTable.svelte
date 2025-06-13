@@ -40,8 +40,13 @@
             year: 'numeric',
             month: 'short',
             day: 'numeric'
-    });
-  }
+      });
+    }
+
+    function toggleStatus(employee) {
+      employee.status = employee.status === 'processed' ? 'unprocessed' : 'processed';
+      employees = [...employees];
+    }
 </script>
 
 <div class="overflow-x-auto">
@@ -188,22 +193,26 @@
                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                     {formatDate(employee.last_day)}
                 </td>
+
+                <!-- Status Badge -->
                 <td class="px-6 py-4 whitespace-nowrap">
-                    <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full {employee.status === 'processed' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}">
+                  <span
+                    class="inline-flex px-2 py-1 text-xs font-medium rounded-full {employee.status === 'processed' ? 'bg-[#CFEED8] text-[#1E9F37]' : 'bg-[#FED9DA] text-[#D7313E]'}"
+                  >
                     {employee.status === 'processed' ? 'Processed' : 'Unprocessed'}
-                    </span>
+                  </span>
                 </td>
+
+                <!-- Toggle Checkbox -->
                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    <div class="relative">
-                    <button 
-                        class="text-gray-400 hover:text-gray-600 focus:outline-none"
-                    >
-                        <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                        <path d="M10 6a2 2 0 110-4 2 2 0 010 4zM10 12a2 2 0 110-4 2 2 0 010 4zM10 18a2 2 0 110-4 2 2 0 010 4z"/>
-                        </svg>
-                    </button>
-                    </div>
+                  <input
+                    type="checkbox"
+                    class="w-5 h-5 text-green-600 rounded border-gray-300 focus:ring-green-500"
+                    checked={employee.status === 'processed'}
+                    on:change={() => toggleStatus(employee)}
+                  />
                 </td>
+
                 </tr>
             {/each}
         </tbody>
@@ -211,11 +220,9 @@
     
     {#if sortedEmployees.length === 0}
         <div class="text-center py-12">
-        <!--
         <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
         </svg>
-        -->
         <h3 class="mt-2 text-sm font-medium text-gray-900">No employees found</h3>
         </div>
     {/if}

@@ -17,6 +17,10 @@
   let statusFilter = 'all';
   let loading = true;
 
+  let message = '';
+  let response = '';
+  let resignees = [];
+
   // hardcoded data
   const mockEmployees = [
     {
@@ -111,23 +115,41 @@
     //
   }
 
-  let message = '';
-  let response = '';
-
   async function submitMessage() {
-    const res = await fetch('/api/submit', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({ message })
-    });
+    if (!message.trim()) {
+      response = 'Please enter resignee details';
+      return;
+    }
 
-    if (res.ok) {
+    try {
+      response = 'Submitting...';
+      
+      const res = await fetch('/resignees', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'text/plain'
+        },
+        body: message
+      });
+
+      if (!res.ok) {
+        throw new Error(`HTTP error! status: ${res.status}`);
+      }
+
       const data = await res.json();
-      response = data.status;
-    } else {
-      response = 'Error submitting';
+      
+      // Update the resignees array with the response data
+      resignees = data;
+      
+      response = `Successfully added ${data.length} resignee(s)`;
+      message = ''; // Clear the input field
+      
+      // You can now use the 'resignees' array to update your table
+      // For example, if you have a table component:
+      // updateTable(resignees);
+      
+    } catch (error) {
+      response = `Error: ${error.message}`;
     }
   }
 
@@ -173,20 +195,25 @@
   </div>
 
   <!-- Input field -->
-<div class="max-w-7xl mx-auto mb-6">
-  <textarea
-    bind:value={message}
-    rows="5"
-    class="block w-full p-4 text-gray-900 border border-gray-300 rounded-lg bg-white text-base resize-y"
-  ></textarea>
-  <button
-    on:click={submitMessage}
-    class="mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg"
-  >
-    Submit
-  </button>
-  <p class="mt-2 text-sm text-gray-700">{response}</p>
-</div>
+<form on:submit|preventDefault={submitMessage}>
+  <div class="max-w-7xl mx-auto mb-6">
+    <textarea
+      bind:value={message}
+      rows="5"
+      class="block w-full p-4 text-gray-900 border border-gray-300 rounded-lg bg-white text-base resize-y"
+      placeholder="Paste resignee details here..."
+    ></textarea>
+    <button
+      type="submit"
+      class="mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg"
+    >
+      Submit
+    </button>
+    {#if response}
+      <p class="mt-2 text-sm text-gray-700">{response}</p>
+    {/if}
+  </div>
+</form>
 
 
   <h1>Resigned Employees</h1>
