@@ -25,5 +25,6 @@ async def auth_middleware(request: Request, call_next: Callable[[Request], Await
     if request.url.path.startswith("/resignees"):
         token = request.cookies.get("access_token")
         if not token or not await verify_token(token):
+            print('ohno')
             return JSONResponse(status_code=401, content={"detail": "Unauthorized"})
     return await call_next(request)

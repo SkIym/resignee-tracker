@@ -73,12 +73,15 @@ def generate_report(file: BytesIO, data: Sequence[Mapping[str, Any]]) -> None:
     worksheet.autofit()
     workbook.close()
 
-async def verify_token(token: str) -> None:
+async def verify_token(token: str):
     secret_key = os.getenv("JWT_SECRET_KEY")
     if not secret_key:
         raise ValueError("SECRET_KEY not found in environment variables")
     
+    # print(jwt.decode(token, secret_key, "HS256"))
     try:
-        return jwt.decode(token, secret_key, "HS256")
-    except PyJWTError:
+        token_data = jwt.decode(token[7:], secret_key, algorithms=["HS256"]) # Remove "Bearer "
+        print(token_data)
+        return token_data
+    except jwt.PyJWTError as e:
         return None
