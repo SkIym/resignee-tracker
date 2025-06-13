@@ -1,12 +1,14 @@
-from cryptography.fernet import Fernet
 import os
+from cryptography.fernet import Fernet
 
-# You should store this key securely!
-FERNET_KEY = os.environ.get("FERNET_KEY", Fernet.generate_key())
-fernet = Fernet(FERNET_KEY)
+FERNET_KEY = os.environ.get("FERNET_KEY")
+if not FERNET_KEY:
+    raise Exception("FERNET_KEY environment variable not set!")
+
+fernet = Fernet(FERNET_KEY.encode())
 
 def encrypt_field(value: str) -> str:
     return fernet.encrypt(value.encode()).decode()
 
-def decrypt_field(value: str) -> str:
-    return fernet.decrypt(value.encode()).decode()
+def decrypt_field(token: str) -> str:
+    return fernet.decrypt(token.encode()).decode()
