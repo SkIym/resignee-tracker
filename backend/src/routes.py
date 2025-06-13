@@ -176,29 +176,6 @@ async def get_excel_report(start_date: str, end_date: str):
             # Decrypt fields for the report if needed
             decrypted_data = []
             for entry in response.data:
-<<<<<<< HEAD
-                iso_processed_date = datetime.fromisoformat(
-                    entry['processed_date_time'].replace("Z", "+00:00")
-                ).isoformat()
-                details = [
-                    entry['employee_no'],
-                    entry['date_hired'],
-                    entry['cost_center'],
-                    entry['last_name'],
-                    entry['first_name'], 
-                    entry['middle_name'],
-                    entry['position_title'],
-                    entry['rank'],
-                    entry['department'],
-                    entry['last_day'],
-                    iso_processed_date
-                ]
-                worksheet.write_row(i, 0, details)
-                i += 1
-
-            workbook.close()
-
-=======
                 decrypted_data.append({
                     "employee_no": decrypt_field(entry['employee_no']),
                     "last_name": decrypt_field(entry['last_name']),
@@ -214,7 +191,6 @@ async def get_excel_report(start_date: str, end_date: str):
                 })
             excel_file = BytesIO()
             generate_report(excel_file, decrypted_data)
->>>>>>> origin/main
             excel_file.seek(0)
             return Response(
                 content=excel_file.read(),
