@@ -24,6 +24,10 @@
         if (sortField === 'date_hired' || sortField === 'last_day') {
             aVal = new Date(aVal);
             bVal = new Date(bVal);
+        } else {
+            // Convert to string for string comparison
+            aVal = String(aVal || '').toLowerCase();
+            bVal = String(bVal || '').toLowerCase();
         }
         
         if (aVal < bVal) return sortDirection === 'asc' ? -1 : 1;
@@ -179,25 +183,25 @@
             {#each sortedEmployees as employee, index (employee.employee_no)}
                 <tr class="hover:bg-gray-50 transition-colors">
                 <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                    {employee.employee_no}
+                    {String(employee.employee_no || '')}
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                     {formatDate(employee.date_hired)}
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                    {employee.cost_center}
+                    {String(employee.cost_center || '')}
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                    {employee.name}
+                    {String(employee.name || '')}
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                    {employee.position_title}
+                    {String(employee.position_title || '')}
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                    {employee.rank}
+                    {String(employee.rank || '')}
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                    {employee.department}
+                    {String(employee.department || '')}
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                     {formatDate(employee.last_day)}

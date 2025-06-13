@@ -27,13 +27,43 @@
       loading = true;
       error = '';
       
-      const res = await fetch(`${BASE_URL}/resignees`);
-      if (!res.ok) throw new Error(await res.text());
-      employees = await res.json();
+      console.log('Attempting to fetch from:', `${BASE_URL}/resignees`);
+      
+      // Add timeout
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
+      
+      const res = await fetch(`${BASE_URL}/resignees`, {
+        signal: controller.signal
+      });
+      
+      clearTimeout(timeoutId);
+      
+      console.log('Response status:', res.status);
+      console.log('Response ok:', res.ok);
+      
+      if (!res.ok) {
+        const errorText = await res.text();
+        console.log('Error response:', errorText);
+        throw new Error(`HTTP ${res.status}: ${errorText}`);
+      }
+      
+      const data = await res.json();
+      console.log('Received data:', data);
+      console.log('Data length:', data?.length);
+      
+      employees = data || [];
       
       loading = false;
     } catch (e) {
-      error = e.message;
+      console.error('Load employees error:', e);
+      if (e.name === 'AbortError') {
+        error = 'Request timed out. Please check if the server is running.';
+      } else if (e.message.includes('fetch')) {
+        error = 'Cannot connect to server. Please check if the server is running on http://localhost:8000';
+      } else {
+        error = e.message;
+      }
       loading = false;
     }
   }
@@ -42,10 +72,10 @@
   $: {
     filteredEmployees = employees.filter(emp => {
       const matchesSearch = searchTerm === '' || 
-        emp.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        emp.employee_no.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        emp.department.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        emp.position_title.toLowerCase().includes(searchTerm.toLowerCase());
+        String(emp.name || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+        String(emp.employee_no || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+        String(emp.department || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+        String(emp.position_title || '').toLowerCase().includes(searchTerm.toLowerCase());
       
       // Convert processed_date_time to status for filtering
       const empStatus = emp.processed_date_time ? 'processed' : 'unprocessed';
@@ -165,26 +195,25 @@
   </div>
 
   <!-- Input field -->
-<form on:submit|preventDefault={submitMessage}>
-  <div class="mt-4 max-w-7xl mx-auto mb-6">
-    <textarea
-      bind:value={message}
-      rows="5"
-      class="block w-full p-4 text-gray-900 border border-gray-300 rounded-lg bg-white text-base resize-y"
-      placeholder="Paste resignee details here..."
-    ></textarea>
-    <button
-      type="submit"
-      class="mt-4 px-4.25 py-1.5 bg-blue-500 text-white rounded-md"
-    >
-      Submit
-    </button>
-    {#if response}
-      <p class="mt-2 text-sm text-gray-700">{response}</p>
-    {/if}
-  </div>
-</form>
-
+	<form on:submit|preventDefault={submitMessage}>
+	<div class="mt-4 max-w-7xl mx-auto mb-6">
+		<textarea
+		bind:value={message}
+		rows="5"
+		class="block w-full p-4 text-gray-900 border border-gray-300 rounded-lg bg-white text-base resize-y"
+		placeholder="Paste resignee details here..."
+		></textarea>
+		<button
+		type="submit"
+		class="mt-4 px-4.25 py-1.5 bg-blue-500 text-white rounded-md"
+		>
+		Submit
+		</button>
+		{#if response}
+		<p class="mt-2 text-sm text-gray-700">{response}</p>
+		{/if}
+	</div>
+	</form>
 
   <h1>Resigned Employees</h1>
   {#if error}
@@ -194,7 +223,7 @@
   {:else}
     <ul>
       {#each employees as emp}
-        <li>{emp.employee_no} ({emp.last_name})</li>
+        <li>{String(emp.employee_no || '')} ({String(emp.last_name || '')})</li>
       {/each}
     </ul>
   {/if}
