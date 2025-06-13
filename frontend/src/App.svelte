@@ -162,7 +162,7 @@
 
   <!-- Input field -->
 <form on:submit|preventDefault={submitMessage}>
-  <div class="max-w-7xl mx-auto mb-6">
+  <div class="mt-4 max-w-7xl mx-auto mb-6">
     <textarea
       bind:value={message}
       rows="5"
@@ -171,7 +171,7 @@
     ></textarea>
     <button
       type="submit"
-      class="mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg"
+      class="mt-4 px-4.25 py-1.5 bg-blue-500 text-white rounded-md"
     >
       Submit
     </button>

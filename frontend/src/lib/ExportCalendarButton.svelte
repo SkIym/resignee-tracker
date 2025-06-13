@@ -46,10 +46,10 @@
 <div class="flex items-center gap-2">
   <!-- Calendar -->
   <label class="text-sm text-gray-600 font-[Open_Sans]">From:</label>
-  <input type="date" bind:value={startDate} class="border px-3 py-1 rounded-full text-sm font-[Open_Sans] uppercase" />
+  <input type="date" bind:value={startDate} class="border border-gray-300 px-3 py-1 rounded-full text-sm font-[Open_Sans] uppercase" />
   
   <label class="text-sm text-gray-600 font-[Open_Sans]">To:</label>
-  <input type="date" bind:value={endDate} class="border px-3 py-1 rounded-full text-sm font-[Open_Sans] uppercase" />
+  <input type="date" bind:value={endDate} class="border border-gray-300 px-3 py-1 rounded-full text-sm font-[Open_Sans] uppercase" />
 
 
   <!-- Export Button -->
