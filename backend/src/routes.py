@@ -1,5 +1,5 @@
 # list endpoints here
-from fastapi import APIRouter, HTTPException, Body, Path
+from fastapi import APIRouter, HTTPException, Body, Path, Form
 from schemas import ResigneeDisplay, ResigneeCreate
 from services import parse_resignee_text
 from datetime import datetime
@@ -155,5 +155,23 @@ async def get_excel_report(start_date: str, end_date: str):
         else:
             raise HTTPException(status_code=404, detail="There were no resignees processed within the given period")
     
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+@router.post("/login")
+async def login(username: str = Form(...), password: str = Form(...)):
+    """
+    Login endpoint for Accounts table.
+    """
+    try:
+        response = supabase.table("Accounts") \
+            .select("*") \
+            .eq("username", username) \
+            .eq("password", password) \
+            .execute()
+        if response.data and len(response.data) > 0:
+            return {"message": "Login successful"}
+        else:
+            return {"message": "Login failed: Invalid username or password"}
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
