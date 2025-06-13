@@ -1,3 +1,4 @@
-"fastapi[standard]"
-"uvicorn[standard]"
-"supabase"
+fastapi[standard]
+uvicorn[standard]
+supabase
+XlsxWriter

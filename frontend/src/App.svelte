@@ -224,7 +224,7 @@
   {:else}
     <ul>
       {#each employees as emp}
-        <li>{emp.employee_num} ({emp.lastname})</li>
+        <li>{emp.employee_no} ({emp.last_name})</li>
       {/each}
     </ul>
   {/if}
