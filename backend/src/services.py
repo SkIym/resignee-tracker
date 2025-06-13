@@ -42,8 +42,11 @@ def parse_resignee_text(raw_text: str) -> list[ResigneeCreate]:
 def generate_report(file: BytesIO, data: Sequence[Mapping[str, Any]]) -> None:
     workbook = xlsxwriter.Workbook(file)
     worksheet = workbook.add_worksheet()
+
+    header_format = workbook.add_format({'bold': True})
+
     headers = ["Employee no.", "Date hired", "Cost center", "Last Name", "First Name", "Middle Name", "Position Title", "Rank", "Department", "Last day with AUB", "Date processed"]
-    worksheet.write_row(0, 0, headers)
+    worksheet.write_row(0, 0, headers, header_format)
 
     i = 1
 
@@ -62,4 +65,5 @@ def generate_report(file: BytesIO, data: Sequence[Mapping[str, Any]]) -> None:
         worksheet.write_row(i, 0, details)
         i += 1
 
+    worksheet.autofit()
     workbook.close()
