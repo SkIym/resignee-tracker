@@ -6,6 +6,11 @@ from io import BytesIO
 import xlsxwriter
 from datetime import datetime
 from typing import Sequence, Mapping, Any
+from fastapi.requests import Request
+from fastapi import HTTPException
+import jwt
+import os
+from jwt import PyJWTError
 
 def parse_resignee_text(raw_text: str) -> list[ResigneeCreate]:
     """
@@ -67,3 +72,27 @@ def generate_report(file: BytesIO, data: Sequence[Mapping[str, Any]]) -> None:
 
     worksheet.autofit()
     workbook.close()
+
+async def get_current_user(request: Request):
+    token = request.cookies.get("access_token")
+    if not token:
+        raise HTTPException(
+            status_code=401,
+            detail="Not authenticated",
+            headers={"WWW-Authenticate": "Bearer"}
+        )
+    
+    secret_key = os.getenv("JWT_SECRET_KEY")
+    if not secret_key:
+        raise ValueError("SECRET_KEY not found in environment variables")
+    
+    try:
+        payload = jwt.decode(token, secret_key, "HS256")
+    except PyJWTError:
+        raise HTTPException(
+            status_code=401,
+            detail="Invalid authentication credentials",
+            headers={"WWW-Authenticate": "Bearer"}
+        )
+    
+    return payload
