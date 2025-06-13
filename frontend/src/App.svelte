@@ -1,5 +1,6 @@
 <script>
   import { onMount } from 'svelte';
+
   import EmployeeTable from './lib/EmployeeTable.svelte';
   import SearchBar from './lib/SearchBar.svelte'
   import FilterButton from './lib/FilterButton.svelte';
@@ -16,54 +17,6 @@
   let response = '';
 
   const BASE_URL = 'http://localhost:8000';
-
-  // hardcoded data
-  const mockEmployees = [
-    {
-      employee_no: '00001',
-      date_hired: '2025-06-11',
-      cost_center: 'CC001',
-      name: 'Aneko Delfin',
-      position_title: 'IT Risk Management Intern',
-      rank: 'NA',
-      department: 'Operations & IT',
-      last_day: '2025-07-04',
-      status: 'processed'
-    },
-    {
-      employee_no: '00002',
-      date_hired: '2025-06-11',
-      cost_center: 'CC001',
-      name: 'Tristan Tan',
-      position_title: 'IT Risk Management Intern',
-      rank: 'NA',
-      department: 'Operations & IT',
-      last_day: '2025-07-04',
-      status: 'unprocessed'
-    },
-    {
-      employee_no: '00003',
-      date_hired: '2025-06-11',
-      cost_center: 'CC002',
-      name: 'Abram Marcelo',
-      position_title: 'IT Risk Management Intern',
-      rank: 'NA',
-      department: 'Operations & IT',
-      last_day: '2025-07-04',
-      status: 'unprocessed'
-    },
-    {
-      employee_no: '00004',
-      date_hired: '2025-06-11',
-      cost_center: 'CC002',
-      name: 'Nate Feliciano',
-      position_title: 'IT Risk Management Intern',
-      rank: 'NA',
-      department: 'Operations & IT',
-      last_day: '2025-07-04',
-      status: 'processed'
-    },
-  ];
 
   onMount(async () => {
     await loadEmployees();
@@ -85,7 +38,7 @@
     }
   }
 
-  // filtering stuff
+  // filtering
   $: {
     filteredEmployees = employees.filter(emp => {
       const matchesSearch = searchTerm === '' || 
@@ -94,7 +47,9 @@
         emp.department.toLowerCase().includes(searchTerm.toLowerCase()) ||
         emp.position_title.toLowerCase().includes(searchTerm.toLowerCase());
       
-      const matchesStatus = statusFilter === 'all' || emp.status === statusFilter;
+      // Convert processed_date_time to status for filtering
+      const empStatus = emp.processed_date_time ? 'processed' : 'unprocessed';
+      const matchesStatus = statusFilter === 'all' || empStatus === statusFilter;
       
       return matchesSearch && matchesStatus;
     });
@@ -106,10 +61,6 @@
 
   function handleFilter(event) {
     filteredEmployees = event.detail.filtered;
-  }
-
-  function handleExport(event) {
-    //
   }
 
   async function submitMessage() {
@@ -130,7 +81,8 @@
       });
 
       if (!res.ok) {
-        throw new Error(`HTTP error! status: ${res.status}`);
+        const errorText = await res.text();
+        throw new Error(`HTTP error! status: ${res.status} - ${errorText}`);
       }
 
       const data = await res.json();
@@ -156,15 +108,14 @@
       });
 
       if (!res.ok) {
-        throw new Error(`Failed to update status: ${res.status}`);
+        const errorText = await res.text();
+        throw new Error(`Failed to update status: ${res.status} - ${errorText}`);
       }
 
       // Reload employees to get updated data
       await loadEmployees();
       
     } catch (error) {
-      console.error('Error updating status:', error);
-      // Optionally show error to user
       response = `Error updating status: ${error.message}`;
     }
   }
@@ -197,7 +148,7 @@
           </div>
         </div>
       {:else}
-        <EmployeeTable employees={filteredEmployees} />
+        <EmployeeTable employees={filteredEmployees} onstatustoggle={handleStatusToggle} />
       {/if}
     </div>
 
