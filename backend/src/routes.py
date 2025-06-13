@@ -1,12 +1,11 @@
 # list endpoints here
 from fastapi import APIRouter, HTTPException, Body, Path, Form
 from schemas import ResigneeDisplay, ResigneeCreate
-from services import parse_resignee_text
+from services import parse_resignee_text, generate_report
 from datetime import datetime
 from supabase_client import supabase
 from io import BytesIO
 from fastapi.responses import Response
-import xlsxwriter
 from datetime import timedelta
 
 router = APIRouter()
@@ -121,32 +120,8 @@ async def get_excel_report(start_date: str, end_date: str):
         
         if response.data and len(response.data) > 0:
             excel_file = BytesIO()
-            workbook = xlsxwriter.Workbook(excel_file)
-
-            worksheet = workbook.add_worksheet()
-            headers = ["Employee no.", "Date hired", "Cost center", "Last Name", "First Name", "Middle Name", "Position Title", "Rank", "Department", "Last day with AUB", "Date processed"]
-
-            worksheet.write_row(0, 0, headers)
-            i = 1
-            for entry in response.data:
-                details = [entry['employee_no'],
-                entry['date_hired'],
-                entry['cost_center'],
-                entry['last_name'],
-                entry['first_name'], 
-                entry['middle_name'],
-                entry['position_title'],
-                entry['rank'],
-                entry['department'],
-                entry['last_day'],
-                datetime.fromisoformat(entry['processed_date_time'].replace("Z", "+00:00")).strftime("%B %d, %Y %I:%M %p")]
-                worksheet.write_row(i, 0, details)
-                i += 1
-
-            workbook.close()
-
+            generate_report(excel_file, response.data)
             excel_file.seek(0)
-
             return Response(
                 content=excel_file.read(),
                 media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
