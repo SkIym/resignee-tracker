@@ -130,23 +130,48 @@
 
   // Function to handle status toggle from EmployeeTable
   async function handleStatusToggle(event) {
-    const { employee } = event.detail;
+    const { employee, action } = event.detail;
     
     try {
-      const res = await fetch(`${BASE_URL}/resignees/${employee.employee_no}/process`, {
+      // Determine the endpoint based on the action
+      // If no action is provided (old format), determine based on current status
+      let endpoint;
+      let actionName;
+      
+      if (action) {
+        // New format with explicit action
+        endpoint = action;
+        actionName = action;
+      } else {
+        // Old format - determine action based on current status
+        if (employee.processed_date_time) {
+          endpoint = 'unprocess';
+          actionName = 'unprocess';
+        } else {
+          endpoint = 'process';
+          actionName = 'process';
+        }
+      }
+      
+      const res = await fetch(`${BASE_URL}/resignees/${employee.employee_no}/${endpoint}`, {
         method: 'PUT'
       });
 
       if (!res.ok) {
         const errorText = await res.text();
-        throw new Error(`Failed to update status: ${res.status} - ${errorText}`);
+        throw new Error(`Failed to ${actionName} employee: ${res.status} - ${errorText}`);
       }
 
       // Reload employees to get updated data
       await loadEmployees();
       
+      // Show success message
+      const actionPastTense = actionName === 'process' ? 'processed' : 'unprocessed';
+      response = `Successfully marked ${employee.name} as ${actionPastTense}`;
+      
     } catch (error) {
-      response = `Error updating status: ${error.message}`;
+      const actionName = action || (employee.processed_date_time ? 'unprocess' : 'process');
+      response = `Error ${actionName}ing employee: ${error.message}`;
     }
   }
 </script>
