@@ -2,11 +2,7 @@
   import EmployeeTable from './lib/EmployeeTable.svelte';
   import { onMount } from 'svelte';
 
-  // import ExportButton from './lib/ExportButton.svelte'
-  // import FilterButton from './lib/FilterButton.svelte'
   import SearchBar from './lib/SearchBar.svelte'
-  // import SortAndFilterDropdownButton from './lib/SortAndFilterDropdownButton.svelte'
-  import SortAndFilterDropdownButton from './lib/SortAndFilterDropdownButton.svelte';
   import ExportButton from './lib/ExportButton.svelte';
   import FilterButton from './lib/FilterButton.svelte';
 
@@ -19,7 +15,8 @@
 
   let message = '';
   let response = '';
-  let resignees = [];
+
+  const BASE_URL = 'http://localhost:8000';
 
   // hardcoded data
   const mockEmployees = [
@@ -70,23 +67,24 @@
   ];
 
   onMount(async () => {
-    try {
-      // using hardcoded data muna so commented out
+    await loadEmployees();
+  });
 
-      // const res = await fetch('http://localhost:8000/ResignedEmployees');
-      // if (!res.ok) throw new Error(await res.text());
-      // employees = await res.json();
+  async function loadEmployees() {
+    try {
+      loading = true;
+      error = '';
       
-      // simulating API delay
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      employees = mockEmployees;
-      filteredEmployees = employees;
+      const res = await fetch(`${BASE_URL}/resignees`);
+      if (!res.ok) throw new Error(await res.text());
+      employees = await res.json();
+      
       loading = false;
     } catch (e) {
       error = e.message;
       loading = false;
     }
-  });
+  }
 
   // filtering stuff
   $: {
@@ -124,7 +122,7 @@
     try {
       response = 'Submitting...';
       
-      const res = await fetch('/resignees', {
+      const res = await fetch(`${BASE_URL}/resignees`, {
         method: 'POST',
         headers: {
           'Content-Type': 'text/plain'
@@ -138,21 +136,39 @@
 
       const data = await res.json();
       
-      // Update the resignees array with the response data
-      resignees = data;
+      // Update the employees array with the response data
+      employees = data;
       
       response = `Successfully added ${data.length} resignee(s)`;
       message = ''; // Clear the input field
-      
-      // You can now use the 'resignees' array to update your table
-      // For example, if you have a table component:
-      // updateTable(resignees);
       
     } catch (error) {
       response = `Error: ${error.message}`;
     }
   }
 
+  // Function to handle status toggle from EmployeeTable
+  async function handleStatusToggle(event) {
+    const { employee } = event.detail;
+    
+    try {
+      const res = await fetch(`${BASE_URL}/resignees/${employee.employee_no}/process`, {
+        method: 'PUT'
+      });
+
+      if (!res.ok) {
+        throw new Error(`Failed to update status: ${res.status}`);
+      }
+
+      // Reload employees to get updated data
+      await loadEmployees();
+      
+    } catch (error) {
+      console.error('Error updating status:', error);
+      // Optionally show error to user
+      response = `Error updating status: ${error.message}`;
+    }
+  }
 </script>
 
 <main class="min-h-screen bg-gray-50 p-6">

@@ -1,5 +1,6 @@
 <script>
     export let employees = [];
+    export let onstatustoggle;
 
     let sortField = '';
     let sortDirection = 'asc';
@@ -11,10 +12,6 @@
             sortField = field;
             sortDirection = 'asc';
         }
-    }
-
-    function handleDelete(employee) {
-        // delete
     }
 
     $: sortedEmployees = [...employees].sort((a, b) => {
@@ -44,8 +41,9 @@
     }
 
     function toggleStatus(employee) {
-      employee.status = employee.status === 'processed' ? 'unprocessed' : 'processed';
-      employees = [...employees];
+        if (onstatustoggle) {
+            onstatustoggle({ detail: { employee } });
+        }
     }
 </script>
 
