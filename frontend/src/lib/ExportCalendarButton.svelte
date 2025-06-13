@@ -1,6 +1,4 @@
 <script lang="ts">
-  import * as XLSX from 'xlsx';
-
   export let data: Array<Record<string, any>> = [];
 
   let startDate = '';
@@ -14,7 +12,10 @@
     }
 
     try {
-      const res = await fetch(`http://localhost:8000/resignees/report?start_date=${startDate}&end_date=${endDate}`);
+      const isoStart = new Date(startDate).toISOString();
+      const isoEnd = new Date(endDate).toISOString();
+
+      const res = await fetch(`http://localhost:8000/resignees/report?start_date=${isoStart}&end_date=${isoEnd}`);
       if (!res.ok) throw new Error('Failed to fetch report from backend');
 
       const blob = await res.blob();
@@ -46,9 +47,10 @@
   <!-- Calendar -->
   <label class="text-sm text-gray-600 font-[Open_Sans]">From:</label>
   <input type="date" bind:value={startDate} class="border px-3 py-1 rounded-full text-sm font-[Open_Sans] uppercase" />
-
+  
   <label class="text-sm text-gray-600 font-[Open_Sans]">To:</label>
   <input type="date" bind:value={endDate} class="border px-3 py-1 rounded-full text-sm font-[Open_Sans] uppercase" />
+
 
   <!-- Export Button -->
   <button
