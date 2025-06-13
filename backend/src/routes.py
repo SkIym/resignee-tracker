@@ -7,6 +7,7 @@ from supabase_client import supabase
 from io import BytesIO
 from fastapi.responses import Response
 from datetime import timedelta
+from crypto_utils import encrypt_field, decrypt_field
 
 router = APIRouter()
 
@@ -161,11 +162,29 @@ async def login(username: str = Form(...), password: str = Form(...)):
         response = supabase.table("Accounts") \
             .select("*") \
             .eq("username", username) \
-            .eq("password", password) \
             .execute()
         if response.data and len(response.data) > 0:
-            return {"message": "Login successful"}
+            account = response.data[0]
+            decrypted_password = decrypt_field(account["password"])
+            if password == decrypted_password:
+                return {"message": "Login successful"}
+            else:
+                return {"message": "Login failed: Invalid username or password"}
         else:
             return {"message": "Login failed: Invalid username or password"}
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+@router.post("/accounts")
+async def create_account(username: str = Form(...), password: str = Form(...)):
+    """
+    Create a new account with encrypted password.
+    """
+    try:
+        encrypted_password = encrypt_field(password)
+        response = supabase.table("Accounts") \
+            .insert({"username": username, "password": encrypted_password}) \
+            .execute()
+        return {"message": "Account created successfully"}
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
