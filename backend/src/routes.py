@@ -1,3 +1,6 @@
+from dotenv import load_dotenv
+load_dotenv()
+
 # list endpoints here
 from fastapi import APIRouter, HTTPException, Body, Path, Form
 from schemas import ResigneeDisplay, ResigneeCreate
@@ -10,36 +13,50 @@ from datetime import timedelta
 from crypto_utils import encrypt_field, decrypt_field
 import jwt
 import os
+import hashlib
 
 router = APIRouter()
+
+def hash_employee_no(employee_no: str) -> str:
+    return hashlib.sha256(employee_no.encode()).hexdigest()
 
 # Endpoint accepting raw text (details) of resignees; will parse and add data to database
 @router.post("/resignees", response_model=list[ResigneeDisplay])
 async def add_resignees(resignees: str = Body(..., media_type="text/plain")):
     """
-    Handle raw resignee details and return parsed data per employee
+    Handle raw resignee details and return parsed data per employee.
+    Encrypt all fields except dates/timestamps before storing.
     """
     
     try:
         entries: list[ResigneeCreate] = parse_resignee_text(resignees)
-
         cleaned_entries: list[ResigneeDisplay] = []
         for entry in entries:
-            
-            # For formatting the name field
+            employee_no_hash = hash_employee_no(entry.employee_no)
+            # Encrypt only the fields that exist in the table and are not dates
+            encrypted_data = {
+                "employee_no": encrypt_field(entry.employee_no),
+                "employee_no_hash": employee_no_hash,
+                "last_name": encrypt_field(entry.last_name),
+                "first_name": encrypt_field(entry.first_name),
+                "middle_name": encrypt_field(entry.middle_name),
+                "cost_center": encrypt_field(entry.cost_center),
+                "position_title": encrypt_field(entry.position_title),
+                "rank": encrypt_field(entry.rank),
+                "department": encrypt_field(entry.department),
+                "date_hired": datetime.strptime(entry.date_hired, "%m/%d/%Y").strftime("%Y-%m-%d"),
+                "last_day": datetime.strptime(entry.last_day, "%m/%d/%Y").strftime("%Y-%m-%d"),
+                "processed_date_time": None
+            }
+            print("Inserting encrypted:", encrypted_data)
+            supabase.table("ResignedEmployees").insert(encrypted_data).execute()
+
+            # For formatting the name field in the response only
             cleaned_entries.append(ResigneeDisplay(
                 **entry.model_dump(exclude={'last_name', 'first_name', 'middle_name'}),
-                name= entry.last_name + ", " + entry.first_name + " " + entry.middle_name
+                name=entry.last_name + ", " + entry.first_name + " " + entry.middle_name
             ))
 
-            to_db = ResigneeCreate(
-                **entry.model_dump(exclude={'date_hired', 'last_day'}),
-                date_hired=datetime.strptime(entry.date_hired, "%m/%d/%Y").strftime("%Y-%m-%d"),
-                last_day=datetime.strptime(entry.last_day, "%m/%d/%Y").strftime("%Y-%m-%d")
-            )
-            print(to_db)
-            supabase.table("ResignedEmployees").insert(to_db.model_dump()).execute()
-            
         return cleaned_entries
 
     except Exception as e:
@@ -69,38 +86,50 @@ async def get_all_unprocessed_resignees():
         cleaned_entries: list[ResigneeDisplay] = []
 
         for entry in to_display:
+            try:
+                # Print types and values for debugging
+                print("Decrypting entry:", entry)
+                employee_no = decrypt_field(entry['employee_no']) if entry.get('employee_no') else ""
+                last_name = decrypt_field(entry['last_name']) if entry.get('last_name') else ""
+                first_name = decrypt_field(entry['first_name']) if entry.get('first_name') else ""
+                middle_name = decrypt_field(entry['middle_name']) if entry.get('middle_name') else ""
+                cost_center = decrypt_field(entry['cost_center']) if entry.get('cost_center') else ""
+                position_title = decrypt_field(entry['position_title']) if entry.get('position_title') else ""
+                rank = decrypt_field(entry['rank']) if entry.get('rank') else ""
+                department = decrypt_field(entry['department']) if entry.get('department') else ""
 
-            cleaned_entries.append(ResigneeDisplay(
-                employee_no=entry['employee_no'],
-                date_hired=entry['date_hired'],
-                cost_center=entry['cost_center'],
-                name= entry['last_name'] + ", " + entry['first_name'] + " " + entry['middle_name'],
-                position_title=entry['position_title'],
-                rank=entry['rank'],
-                department=entry['department'],
-                last_day=entry['last_day'],
-                processed_date_time=entry['processed_date_time']
-            ))
+                cleaned_entries.append(ResigneeDisplay(
+                    employee_no=employee_no,
+                    date_hired=entry.get('date_hired', ""),
+                    cost_center=cost_center,
+                    name=f"{last_name}, {first_name} {middle_name}",
+                    position_title=position_title,
+                    rank=rank,
+                    department=department,
+                    last_day=entry.get('last_day', ""),
+                    processed_date_time=entry.get('processed_date_time', "")
+                ))
+            except Exception as inner_e:
+                print("Error decrypting entry:", entry)
+                print("Exception:", repr(inner_e))
+                continue  # Skip this entry if it fails
 
         return cleaned_entries
     
     except Exception as e:
+        print("Outer exception:", e)
         raise HTTPException(status_code=400, detail=str(e))
 
 # Endpoint to mark resignation entry as processed (will now not be returned to client )
 
 @router.put("/resignees/{employee_no}/process")
-async def mark_resignee_processed(
-    employee_no: int = Path(..., description="Employee number to mark as processed")
-):
-    """
-    Mark a resignee as processed by setting the processed_date_time to now.
-    """
+async def mark_resignee_processed(employee_no: str = Path(...)):
     try:
         now = datetime.now().isoformat()
+        employee_no_hash = hash_employee_no(employee_no)
         response = supabase.table("ResignedEmployees") \
             .update({"processed_date_time": now}) \
-            .eq("employee_no", employee_no) \
+            .eq("employee_no_hash", employee_no_hash) \
             .execute()
         if response.data and len(response.data) > 0:
             return {"message": f"Employee {employee_no} marked as processed.", "processed_date_time": now}
@@ -109,17 +138,19 @@ async def mark_resignee_processed(
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
 
+
 @router.put("/resignees/{employee_no}/unprocess")
 async def unmark_resignee_processed(
-    employee_no: int = Path(..., description="Employee number to mark as processed")
+    employee_no: str = Path(..., description="Employee number to unmark as processed")
 ):
     """
-    Mark a resignee as processed by setting the processed_date_time to now.
+    Unmark a resignee as processed by setting the processed_date_time to None.
     """
     try:
+        employee_no_hash = hash_employee_no(employee_no)
         response = supabase.table("ResignedEmployees") \
             .update({"processed_date_time": None}) \
-            .eq("employee_no", employee_no) \
+            .eq("employee_no_hash", employee_no_hash) \
             .execute()
         if response.data and len(response.data) > 0:
             return {"message": f"Employee {employee_no} unmarked as processed."}
@@ -128,10 +159,12 @@ async def unmark_resignee_processed(
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
 
-# Endpoint serving report of processed resignees within a selected timeframe
+
 @router.get("/resignees/report")
 async def get_excel_report(start_date: str, end_date: str):
-
+    """
+    Generate an Excel report of processed resignees within a selected timeframe.
+    """
     try:
         response = supabase.table("ResignedEmployees") \
             .select("*") \
@@ -140,8 +173,24 @@ async def get_excel_report(start_date: str, end_date: str):
             .execute()
         
         if response.data and len(response.data) > 0:
+            # Decrypt fields for the report if needed
+            decrypted_data = []
+            for entry in response.data:
+                decrypted_data.append({
+                    "employee_no": decrypt_field(entry['employee_no']),
+                    "last_name": decrypt_field(entry['last_name']),
+                    "first_name": decrypt_field(entry['first_name']),
+                    "middle_name": decrypt_field(entry['middle_name']),
+                    "cost_center": decrypt_field(entry['cost_center']),
+                    "position_title": decrypt_field(entry['position_title']),
+                    "rank": decrypt_field(entry['rank']),
+                    "department": decrypt_field(entry['department']),
+                    "date_hired": entry.get('date_hired', ""),
+                    "last_day": entry.get('last_day', ""),
+                    "processed_date_time": entry.get('processed_date_time', "")
+                })
             excel_file = BytesIO()
-            generate_report(excel_file, response.data)
+            generate_report(excel_file, decrypted_data)
             excel_file.seek(0)
             return Response(
                 content=excel_file.read(),
