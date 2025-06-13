@@ -73,26 +73,12 @@ def generate_report(file: BytesIO, data: Sequence[Mapping[str, Any]]) -> None:
     worksheet.autofit()
     workbook.close()
 
-async def get_current_user(request: Request):
-    token = request.cookies.get("access_token")
-    if not token:
-        raise HTTPException(
-            status_code=401,
-            detail="Not authenticated",
-            headers={"WWW-Authenticate": "Bearer"}
-        )
-    
+async def verify_token(token: str) -> None:
     secret_key = os.getenv("JWT_SECRET_KEY")
     if not secret_key:
         raise ValueError("SECRET_KEY not found in environment variables")
     
     try:
-        payload = jwt.decode(token, secret_key, "HS256")
+        return jwt.decode(token, secret_key, "HS256")
     except PyJWTError:
-        raise HTTPException(
-            status_code=401,
-            detail="Invalid authentication credentials",
-            headers={"WWW-Authenticate": "Bearer"}
-        )
-    
-    return payload
+        return None

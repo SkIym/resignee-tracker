@@ -14,7 +14,7 @@ from crypto_utils import encrypt_field, decrypt_field
 import jwt
 import os
 import hashlib
-
+    
 router = APIRouter()
 
 def hash_employee_no(employee_no: str) -> str:
