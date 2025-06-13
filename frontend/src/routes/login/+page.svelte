@@ -28,7 +28,7 @@
             type="text"
             bind:value={username}
             required
-            class="w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm placeholder-gray-400 transition-colors"
+            class="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg shadow-sm placeholder-gray-400 transition-colors"
           />
         </div>
         
@@ -42,7 +42,7 @@
             type="password"
             bind:value={password}
             required
-            class="w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm placeholder-gray-400 transition-colors"
+            class="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg shadow-sm placeholder-gray-400 transition-colors"
           />
         </div>
         
