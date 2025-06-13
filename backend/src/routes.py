@@ -265,8 +265,17 @@ async def login(response: Response, username: str = Form(...), password: str = F
 async def create_account(username: str = Form(...), password: str = Form(...)):
     """
     Create a new account with encrypted password.
+    Ensures no duplicate usernames.
     """
     try:
+        # Check for duplicate username
+        existing = supabase.table("Accounts") \
+            .select("username") \
+            .eq("username", username) \
+            .execute()
+        if existing.data and len(existing.data) > 0:
+            raise HTTPException(status_code=400, detail="Username already exists")
+
         encrypted_password = encrypt_field(password)
         response = supabase.table("Accounts") \
             .insert({"username": username, "password": encrypted_password}) \
