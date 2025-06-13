@@ -7,28 +7,30 @@
   let endDate = '';
   let exportConfirmed = false;
 
-  function handleExportClick() {
+  async function handleExportClick() {
     if (!startDate || !endDate) {
       alert('Please select both a start and end date.');
       return;
     }
 
-    const filtered = data.filter(emp => {
-      const d = new Date(emp.last_day);
-      return d >= new Date(startDate) && d <= new Date(endDate);
-    });
+    try {
+      const res = await fetch(`http://localhost:8000/resignees/report?start_date=${startDate}&end_date=${endDate}`);
+      if (!res.ok) throw new Error('Failed to fetch report from backend');
 
-    if (filtered.length === 0) {
-      alert('No records found in this date range.');
-      return;
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `resignee_report_${startDate}_to_${endDate}.xlsx`;
+      a.click();
+      URL.revokeObjectURL(url);
+
+      exportConfirmed = true;
+    } catch (err) {
+      console.error('Error downloading backend report:', err);
+      alert('No process dates were found within the specified date range');
     }
-
-    const ws = XLSX.utils.json_to_sheet(filtered);
-    const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, 'Sheet1');
-    XLSX.writeFile(wb, 'resigned_employees.xlsx');
-
-    exportConfirmed = true;
   }
 
   function clearDateRange() {
@@ -36,16 +38,19 @@
     endDate = '';
     exportConfirmed = false;
   }
+
+
 </script>
 
 <div class="flex items-center gap-2">
-  <!-- Always-visible date inputs -->
+  <!-- Calendar -->
   <label class="text-sm text-gray-600 font-[Open_Sans]">From:</label>
   <input type="date" bind:value={startDate} class="border px-3 py-1 rounded-full text-sm font-[Open_Sans] uppercase" />
 
   <label class="text-sm text-gray-600 font-[Open_Sans]">To:</label>
   <input type="date" bind:value={endDate} class="border px-3 py-1 rounded-full text-sm font-[Open_Sans] uppercase" />
 
+  <!-- Export Button -->
   <button
     on:click={handleExportClick}
     class={`flex items-center gap-2 px-4.25 py-1.5 rounded-md text-sm font-medium transition ${
