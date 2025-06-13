@@ -107,6 +107,25 @@ async def mark_resignee_processed(
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
 
+@router.put("/resignees/{employee_no}/unprocess")
+async def unmark_resignee_processed(
+    employee_no: int = Path(..., description="Employee number to mark as processed")
+):
+    """
+    Mark a resignee as processed by setting the processed_date_time to now.
+    """
+    try:
+        response = supabase.table("ResignedEmployees") \
+            .update({"processed_date_time": None}) \
+            .eq("employee_no", employee_no) \
+            .execute()
+        if response.data and len(response.data) > 0:
+            return {"message": f"Employee {employee_no} unmarked as processed."}
+        else:
+            raise HTTPException(status_code=404, detail="Employee not found")
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
 # Endpoint serving report of processed resignees within a selected timeframe
 @router.get("/resignees/report")
 async def get_excel_report(start_date: str, end_date: str):
