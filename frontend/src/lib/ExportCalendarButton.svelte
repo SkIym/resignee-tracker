@@ -13,7 +13,10 @@
       const isoStart = new Date(startDate).toISOString();
       const isoEnd = new Date(endDate).toISOString();
 
-      const res = await fetch(`http://localhost:8000/resignees/report?start_date=${isoStart}&end_date=${isoEnd}`);
+      const res = await fetch(`http://localhost:8000/resignees/report?start_date=${isoStart}&end_date=${isoEnd}`, {
+        credentials: 'include' // ✅ include session cookie
+      });
+  
       if (!res.ok) throw new Error('Failed to fetch report from backend');
 
       const blob = await res.blob();

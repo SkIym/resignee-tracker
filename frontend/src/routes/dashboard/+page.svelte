@@ -35,8 +35,10 @@
       const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
       
       const res = await fetch(`${BASE_URL}/resignees`, {
-        signal: controller.signal
+        signal: controller.signal,
+        credentials: "include"
       });
+
       
       clearTimeout(timeoutId);
       
@@ -105,7 +107,9 @@
         headers: {
           'Content-Type': 'text/plain'
         },
-        body: message
+        body: message,
+
+        credentials: 'include'
       });
 
       if (!res.ok) {
@@ -148,7 +152,8 @@
       }
       
       const res = await fetch(`${BASE_URL}/resignees/${employee.employee_no}/${endpoint}`, {
-        method: 'PUT'
+        method: 'PUT',
+        credentials: 'include'
       });
 
       if (!res.ok) {
