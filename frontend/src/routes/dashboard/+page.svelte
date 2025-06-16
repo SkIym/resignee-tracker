@@ -232,7 +232,7 @@
 		<div class="mt-4 flex justify-between items-center">
     <button
       type="submit"
-      class="px-4.25 py-1.5 bg-blue-500 text-white rounded-md"
+      class="px-4.25 py-1.5 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition"
     >
       Submit
     </button>
