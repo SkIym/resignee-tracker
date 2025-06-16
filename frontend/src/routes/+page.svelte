@@ -5,6 +5,7 @@
   import SearchBar from '../lib/SearchBar.svelte'
   import FilterButton from '../lib/FilterButton.svelte';
   import ExportCalendarButton from '../lib/ExportCalendarButton.svelte';
+  import LogoutButton from '$lib/LogoutButton.svelte';
 
   let employees = [];
   let filteredEmployees = [];
@@ -228,12 +229,16 @@
 		class="block w-full p-4 text-gray-900 border border-gray-300 rounded-lg bg-white text-base resize-y"
 		placeholder="Paste resignee details here..."
 		></textarea>
-		<button
-		type="submit"
-		class="mt-4 px-4.25 py-1.5 bg-blue-500 text-white rounded-md"
-		>
-		Submit
-		</button>
+		<div class="mt-4 flex justify-between items-center">
+    <button
+      type="submit"
+      class="px-4.25 py-1.5 bg-blue-500 text-white rounded-md"
+    >
+      Submit
+    </button>
+
+    <LogoutButton />
+  </div>
 		{#if response}
 		<p class="mt-2 text-sm text-gray-700">{response}</p>
 		{/if}

@@ -1,6 +1,4 @@
 <script lang="ts">
-  export let data: Array<Record<string, any>> = [];
-
   let startDate = '';
   let endDate = '';
   let exportConfirmed = false;
@@ -45,11 +43,21 @@
 
 <div class="flex items-center gap-2">
   <!-- Calendar -->
-  <label class="text-sm text-gray-600 font-[Open_Sans]">From:</label>
-  <input type="date" bind:value={startDate} class="border border-gray-300 px-3 py-1 rounded-full text-sm font-[Open_Sans] uppercase" />
-  
-  <label class="text-sm text-gray-600 font-[Open_Sans]">To:</label>
-  <input type="date" bind:value={endDate} class="border border-gray-300 px-3 py-1 rounded-full text-sm font-[Open_Sans] uppercase" />
+  <label for="start-date" class="text-sm text-gray-600 font-[Open_Sans]">From:</label>
+  <input
+    id="start-date"
+    type="date"
+    bind:value={startDate}
+    class="border border-gray-300 px-3 py-1 rounded-full text-sm font-[Open_Sans] uppercase"
+  />
+
+  <label for="end-date" class="text-sm text-gray-600 font-[Open_Sans]">To:</label>
+  <input
+    id="end-date"
+    type="date"
+    bind:value={endDate}
+    class="border border-gray-300 px-3 py-1 rounded-full text-sm font-[Open_Sans] uppercase"
+  />
 
 
   <!-- Export Button -->
