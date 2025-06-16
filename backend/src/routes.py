@@ -251,8 +251,8 @@ async def login(response: Response, username: str = Form(...), password: str = F
             value=f"Bearer {token}",
             httponly=True,
             max_age=3600 * 12,
-            secure=False,  # For HTTPS, toggle to True
-            samesite="lax"
+            secure=True,  # For HTTPS, toggle to True. For HTTP, to False
+            samesite="none" # For HTTPS, none. For HTTP, lax
         )
 
         print(response.headers)
