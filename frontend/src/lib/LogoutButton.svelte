@@ -1,13 +1,13 @@
 <script lang="ts">
   import { goto } from '$app/navigation'; 
 
-  async function handleLogout() {
+  async function handleLogout() {   
     await fetch('http://localhost:8000/logout', {
         method: 'POST',
         credentials: 'include'
     });
 
-  goto('/login');
+  goto('/');
 }
 
 </script>

@@ -35,7 +35,7 @@
 
 			if (response.ok) {
 				// Redirect to login page after successful signup
-				goto('/login');
+				goto('/');
 			} else {
 				const errorData = await response.text();
 				errorMessage = `Sign up failed (${response.status}). ${errorData || 'Please try again.'}`;
@@ -48,7 +48,7 @@
 	};
 
 	const handleLogin = () => {
-		goto('/login');
+		goto('/');
 	};
 </script>
 
