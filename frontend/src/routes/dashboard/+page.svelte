@@ -17,7 +17,7 @@
   let message = '';
   let response = '';
 
-  const BASE_URL = 'http://localhost:8000';
+  const BASE_URL = 'https://localhost:8000';
 
   onMount(async () => {
     await loadEmployees();

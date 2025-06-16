@@ -2,7 +2,7 @@
   import { goto } from '$app/navigation'; 
 
   async function handleLogout() {   
-    await fetch('http://localhost:8000/logout', {
+    await fetch('https://localhost:8000/logout', {
         method: 'POST',
         credentials: 'include'
     });
