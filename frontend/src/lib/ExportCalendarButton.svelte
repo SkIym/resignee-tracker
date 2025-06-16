@@ -14,7 +14,7 @@
       const isoEnd = new Date(endDate).toISOString();
 
       const res = await fetch(`http://localhost:8000/resignees/report?start_date=${isoStart}&end_date=${isoEnd}`, {
-        credentials: 'include' // ✅ include session cookie
+        credentials: 'include' 
       });
   
       if (!res.ok) throw new Error('Failed to fetch report from backend');
@@ -66,7 +66,7 @@
   <!-- Export Button -->
   <button
     on:click={handleExportClick}
-    class={`flex items-center gap-2 px-4.25 py-1.5 rounded-md text-sm font-medium transition ${
+    class={`flex items-center gap-2 px-4.25 py-1.75 rounded-md text-sm font-[Open_Sans] hover:bg-blue-600 transition ${
       exportConfirmed ? 'bg-blue-500 text-white' : 'bg-blue-500 text-white'
     }`}
   >
