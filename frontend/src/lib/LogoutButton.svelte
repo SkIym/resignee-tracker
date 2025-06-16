@@ -1,14 +1,15 @@
 <script lang="ts">
-  import { goto } from '$app/navigation'; // use 'import { push } from "svelte-spa-router"' if not using SvelteKit
+  import { goto } from '$app/navigation'; 
 
-  function handleLogout() {
-    // Optional: clear auth/token/localStorage if you're using them
-    localStorage.removeItem('user');
-    sessionStorage.clear();
+  async function handleLogout() {
+    await fetch('http://localhost:8000/logout', {
+        method: 'POST',
+        credentials: 'include'
+    });
 
-    // Redirect to login
-    goto('/'); // or use `push('/')` for svelte-spa-router
-  }
+  goto('/login');
+}
+
 </script>
 
 <button
