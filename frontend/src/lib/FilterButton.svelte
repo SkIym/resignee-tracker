@@ -1,5 +1,6 @@
 <script lang="ts">
   import { createEventDispatcher } from 'svelte';
+  import { parseISO, format } from 'date-fns';
   export let employees: Array<Record<string, any>> = [];
   const dispatch = createEventDispatcher();
 
@@ -59,19 +60,47 @@
     applyFilters();
   }
 
-  function applyFilters() {
+function applyFilters() {
   let filtered = employees;
 
   activeFilters.forEach(filter => {
     const key = mapFieldToKey(filter.field);
-    filtered = filtered.filter(emp =>
-      emp[key]?.toLowerCase().includes(filter.value.toLowerCase())
-    );
+    filtered = filtered.filter(emp => {
+      const fieldValue = emp[key]?.toString().toLowerCase();
+      const filterValue = filter.value.toLowerCase();
+
+      // Use exact match for specific fields
+      if (filter.field === "Employee no." || filter.field === "Cost center") {
+        return fieldValue === filterValue;
+      }
+
+      if (filter.field === "Date hired" || filter.field === "Last day") {
+        try {
+          const date = parseISO(fieldValue);
+          const month = format(date, 'LLLL').toLowerCase(); // e.g. "january"
+          const shortMonth = format(date, 'LLL').toLowerCase(); // e.g. "jan"
+          const year = format(date, 'yyyy');
+
+          return (
+            month.includes(filterValue) ||
+            shortMonth.includes(filterValue) ||
+            year.includes(filterValue) ||
+            fieldValue.toLowerCase().includes(filterValue)
+          );
+        } catch {
+          return false;
+        }
+      }
+
+      // Default partial match
+      return fieldValue?.toString().toLowerCase().includes(filterValue);
+  
+      
+    });
   });
 
   dispatch('filter', { filtered });
 }
-
 function mapFieldToKey(field: string): string {
   const map: Record<string, string> = {
     "Employee no.": "employee_no",
