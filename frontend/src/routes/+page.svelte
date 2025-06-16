@@ -96,13 +96,10 @@
 
   async function submitMessage() {
     if (!message.trim()) {
-      response = 'Please enter resignee details';
       return;
     }
 
-    try {
-      response = 'Submitting...';
-      
+    try {    
       const res = await fetch(`${BASE_URL}/resignees`, {
         method: 'POST',
         headers: {
@@ -116,13 +113,9 @@
         throw new Error(`HTTP error! status: ${res.status} - ${errorText}`);
       }
 
-      const data = await res.json();
+      await loadEmployees();
       
-      // Update the employees array with the response data
-      employees = data;
-      
-      response = `Successfully added ${data.length} resignee(s)`;
-      message = ''; // Clear the input field
+      message = '';
       
     } catch (error) {
       response = `Error: ${error.message}`;
@@ -168,7 +161,7 @@
       
       // Show success message
       const actionPastTense = actionName === 'process' ? 'processed' : 'unprocessed';
-      response = `Successfully marked ${employee.name} as ${actionPastTense}`;
+      // response = `Successfully marked ${employee.name} as ${actionPastTense}`;
       
     } catch (error) {
       const actionName = action || (employee.processed_date_time ? 'unprocess' : 'process');
@@ -208,7 +201,9 @@
           </div>
         </div>
       {:else}
-        <EmployeeTable employees={filteredEmployees} onstatustoggle={handleStatusToggle} />
+        <div class="overflow-auto max-h-[500px]">
+          <EmployeeTable employees={filteredEmployees} onstatustoggle={handleStatusToggle} />
+        </div>
       {/if}
     </div>
 
