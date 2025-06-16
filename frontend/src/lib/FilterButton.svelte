@@ -69,7 +69,7 @@ function applyFilters() {
       const fieldValue = emp[key]?.toString().toLowerCase();
       const filterValue = filter.value.toLowerCase();
 
-      // Use exact match for specific fields
+      
       if (filter.field === "Employee no." || filter.field === "Cost center") {
         return fieldValue === filterValue;
       }
@@ -77,8 +77,8 @@ function applyFilters() {
       if (filter.field === "Date hired" || filter.field === "Last day") {
         try {
           const date = parseISO(fieldValue);
-          const month = format(date, 'LLLL').toLowerCase(); // e.g. "january"
-          const shortMonth = format(date, 'LLL').toLowerCase(); // e.g. "jan"
+          const month = format(date, 'LLLL').toLowerCase();
+          const shortMonth = format(date, 'LLL').toLowerCase();
           const year = format(date, 'yyyy');
 
           return (
@@ -91,11 +91,12 @@ function applyFilters() {
           return false;
         }
       }
+      if (filter.field === "Status") {
+        const normalized = fieldValue ? 'processed' : 'unprocessed';
+        return normalized === filterValue.toLowerCase();
+      }
 
-      // Default partial match
       return fieldValue?.toString().toLowerCase().includes(filterValue);
-  
-      
     });
   });
 
@@ -111,7 +112,7 @@ function mapFieldToKey(field: string): string {
     "Rank": "rank",
     "Department": "department",
     "Last day": "last_day",
-    "Status": "status"
+    "Status": "processed_date_time"
   };
   return map[field] || field;
 }
