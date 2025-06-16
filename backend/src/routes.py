@@ -14,6 +14,7 @@ from crypto_utils import encrypt_field, decrypt_field
 import jwt
 import os
 import hashlib
+from fastapi.requests import Request
     
 router = APIRouter()
 
@@ -260,6 +261,12 @@ async def login(response: Response, username: str = Form(...), password: str = F
         
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+@router.get("/check-auth")
+async def check_auth(request: Request):
+    if not request.cookies.get("access_token"):
+        raise HTTPException(status_code=401)
+    return {"authenticated": True}
 
 @router.post("/logout")
 async def logout(response: Response):
