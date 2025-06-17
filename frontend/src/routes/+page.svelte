@@ -1,4 +1,4 @@
-<script>
+<script lang="ts">
 	import { goto } from '$app/navigation';
 
 	let username = '';
@@ -6,7 +6,7 @@
 	let isLoading = false;
 	let errorMessage = '';
 
-	const handleSubmit = async (e) => {
+	const handleSubmit = async (e: any) => {
 		e.preventDefault();
 		isLoading = true;
 		errorMessage = '';
@@ -32,10 +32,14 @@
 				errorMessage = `Login failed (${response.status}). Please check your credentials.`;
 			}
 		} catch (error) {
-			errorMessage = `Network error: ${error.message}. Please try again.`;
-		} finally {
-			isLoading = false;
-		}
+      if (error instanceof Error) {
+        errorMessage = `Network error: ${error.message}. Please try again.`;
+      } else {
+        errorMessage = 'Network error: An unknown error occurred. Please try again.';
+      }
+    } finally {
+      isLoading = false;
+    }
 	};
 
 	const handleSignUp = () => {
