@@ -1,7 +1,7 @@
 # place parsing functions and other business logic here
 
 # Parsing function (from raw text from email to labeled data)
-from schemas import ResigneeCreate
+from src.schemas import ResigneeCreate
 from io import BytesIO
 import xlsxwriter
 from datetime import datetime
