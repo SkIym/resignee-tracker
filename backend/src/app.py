@@ -9,6 +9,7 @@ from typing import Callable, Awaitable
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
 from pathlib import Path
+import uvicorn
 
 app = FastAPI(swagger_ui_parameters={"syntaxHighlight": {"theme": "obsidian"}})
 
@@ -45,3 +46,6 @@ async def serve_spa(full_path: str):
     if not static_path.exists():
         return {"message": "Frontend not built"}
     return FileResponse(static_path)
+
+if __name__ == "__main__":
+    uvicorn.run("app:app", host="0.0.0.0", port=8000, reload=False)
