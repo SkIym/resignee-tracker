@@ -78,7 +78,7 @@ def generate_report(file: BytesIO, data: Sequence[Mapping[str, Any]]) -> None:
 
     worksheet.autofit()
     workbook.close()
-    
+
 async def verify_token(token: str):
     secret_key = os.getenv("JWT_SECRET_KEY")
     if not secret_key:
