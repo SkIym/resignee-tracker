@@ -9,6 +9,11 @@ from typing import Callable, Awaitable
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
 from pathlib import Path
+import os
+import sys
+
+xlsxwriter_path = os.path.join(os.path.dirname(__file__), 'xlsxwriter')
+sys.path.insert(0, xlsxwriter_path)
 
 app = FastAPI(swagger_ui_parameters={"syntaxHighlight": {"theme": "obsidian"}})
 
