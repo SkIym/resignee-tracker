@@ -178,9 +178,17 @@ async def get_excel_report(start_date: str, end_date: str):
     Generate an Excel report of processed resignees within a selected timeframe.
     """
     try:
+        end_datetime = datetime.fromisoformat(end_date)
+
+        # Set the time to 23:59:59 of the same day
+        end_datetime = end_datetime.replace(hour=23, minute=59, second=59)
+
+        # Convert back to ISO format string if needed
+        end_date_with_time = end_datetime.isoformat()
+        
         response = supabase.table("ResignedEmployees") \
             .select("*") \
-            .lte("processed_date_time", end_date) \
+            .lte("processed_date_time", end_date_with_time) \
             .gte("processed_date_time", start_date) \
             .execute()
         
