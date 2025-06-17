@@ -13,7 +13,7 @@
       const isoStart = new Date(startDate).toISOString();
       const isoEnd = new Date(endDate).toISOString();
 
-      const res = await fetch(`http://localhost:8000/resignees/report?start_date=${isoStart}&end_date=${isoEnd}`, {
+      const res = await fetch(`https://localhost:8000/resignees/report?start_date=${isoStart}&end_date=${isoEnd}`, {
         credentials: 'include' 
       });
   

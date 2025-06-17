@@ -1,15 +1,24 @@
 <script lang="ts">
   import { goto } from '$app/navigation'; 
 
-  async function handleLogout() {   
-    await fetch('http://localhost:8000/logout', {
+   async function handleLogout() {   
+    try {
+      const res = await fetch('https://localhost:8000/logout', {
         method: 'POST',
-        credentials: 'include'
-    });
+        credentials: 'include', // <-- Required to send and delete HttpOnly cookies
+      });
 
-  goto('/');
-}
+      if (!res.ok) {
+        const text = await res.text();
+        console.error('Logout failed:', text);
+        return;
+      }
 
+      goto('/');
+    } catch (err) {
+      console.error('Logout error:', err);
+    }
+  }
 </script>
   <button
     on:click={handleLogout}

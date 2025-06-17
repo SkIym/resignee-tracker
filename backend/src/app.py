@@ -11,9 +11,9 @@ app = FastAPI(swagger_ui_parameters={"syntaxHighlight": {"theme": "obsidian"}})
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # For dev only
+    allow_origins=["http://localhost:5173"],  # For dev only
     allow_credentials=True,
-    allow_methods=["*"],
+    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allow_headers=["*"],
 )
 
@@ -22,6 +22,10 @@ app.include_router(router)
 @app.middleware("http")
 async def auth_middleware(request: Request, call_next: Callable[[Request], Awaitable[Response]]):
 
+    if request.method == "OPTIONS":
+        response = await call_next(request)
+        return response
+    
     if request.url.path.startswith("/resignees"):
         token = request.cookies.get("access_token")
         if not token or not await verify_token(token):

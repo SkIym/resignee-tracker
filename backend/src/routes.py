@@ -199,7 +199,10 @@ async def get_excel_report(start_date: str, end_date: str):
                     "department": decrypt_field(entry['department']),
                     "date_hired": entry.get('date_hired', ""),
                     "last_day": entry.get('last_day', ""),
-                    "processed_date_time": entry.get('processed_date_time', "")
+                    "processed_date_time": (
+                        datetime.fromisoformat(entry['processed_date_time']).isoformat()
+                        if entry.get('processed_date_time') else ""
+                    )
                 })
             excel_file = BytesIO()
             generate_report(excel_file, decrypted_data)
@@ -251,8 +254,8 @@ async def login(response: Response, username: str = Form(...), password: str = F
             value=f"Bearer {token}",
             httponly=True,
             max_age=3600 * 12,
-            secure=False,  # For HTTPS, toggle to True
-            samesite="lax"
+            secure=True,  # For HTTPS, toggle to True. For HTTP, to False
+            samesite="none" # For HTTPS, none. For HTTP, lax
         )
 
         print(response.headers)
@@ -270,7 +273,13 @@ async def check_auth(request: Request):
 
 @router.post("/logout")
 async def logout(response: Response):
-    response.delete_cookie("access_token")
+    response.delete_cookie(
+        key="access_token",
+        path="/",
+        secure=True,
+        samesite="none"
+                           
+    )
     return {"message": "Successfully logged out"}
 
 @router.post("/accounts")
