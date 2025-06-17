@@ -26,8 +26,52 @@
  * ```
  */
 declare module '$env/static/private' {
+<<<<<<< HEAD
 	export const LESSOPEN: string;
 	export const USER: string;
+=======
+	export const ACSetupSvcPort: string;
+	export const ACSvcPort: string;
+	export const ALLUSERSPROFILE: string;
+	export const APPDATA: string;
+	export const COLOR: string;
+	export const CommonProgramFiles: string;
+	export const CommonProgramW6432: string;
+	export const COMPUTERNAME: string;
+	export const ComSpec: string;
+	export const CUDA_PATH: string;
+	export const CUDA_PATH_V12_8: string;
+	export const DriverData: string;
+	export const EDITOR: string;
+	export const EFC_12756_1262719628: string;
+	export const EFC_12756_1592913036: string;
+	export const EFC_12756_2283032206: string;
+	export const EFC_12756_2775293581: string;
+	export const EFC_12756_3789132940: string;
+	export const EnableLog: string;
+	export const FPS_BROWSER_APP_PROFILE_STRING: string;
+	export const FPS_BROWSER_USER_PROFILE_STRING: string;
+	export const HOME: string;
+	export const HOMEDRIVE: string;
+	export const HOMEPATH: string;
+	export const INIT_CWD: string;
+	export const JAVA_HOME: string;
+	export const LOCALAPPDATA: string;
+	export const LOGONSERVER: string;
+	export const NODE: string;
+	export const NODE_ENV: string;
+	export const npm_command: string;
+	export const npm_config_cache: string;
+	export const npm_config_globalconfig: string;
+	export const npm_config_global_prefix: string;
+	export const npm_config_init_module: string;
+	export const npm_config_local_prefix: string;
+	export const npm_config_node_gyp: string;
+	export const npm_config_noproxy: string;
+	export const npm_config_npm_version: string;
+	export const npm_config_prefix: string;
+	export const npm_config_userconfig: string;
+>>>>>>> main
 	export const npm_config_user_agent: string;
 	export const npm_node_execpath: string;
 	export const SHLVL: string;
@@ -118,8 +162,52 @@ declare module '$env/static/public' {
  */
 declare module '$env/dynamic/private' {
 	export const env: {
+<<<<<<< HEAD
 		LESSOPEN: string;
 		USER: string;
+=======
+		ACSetupSvcPort: string;
+		ACSvcPort: string;
+		ALLUSERSPROFILE: string;
+		APPDATA: string;
+		COLOR: string;
+		CommonProgramFiles: string;
+		CommonProgramW6432: string;
+		COMPUTERNAME: string;
+		ComSpec: string;
+		CUDA_PATH: string;
+		CUDA_PATH_V12_8: string;
+		DriverData: string;
+		EDITOR: string;
+		EFC_12756_1262719628: string;
+		EFC_12756_1592913036: string;
+		EFC_12756_2283032206: string;
+		EFC_12756_2775293581: string;
+		EFC_12756_3789132940: string;
+		EnableLog: string;
+		FPS_BROWSER_APP_PROFILE_STRING: string;
+		FPS_BROWSER_USER_PROFILE_STRING: string;
+		HOME: string;
+		HOMEDRIVE: string;
+		HOMEPATH: string;
+		INIT_CWD: string;
+		JAVA_HOME: string;
+		LOCALAPPDATA: string;
+		LOGONSERVER: string;
+		NODE: string;
+		NODE_ENV: string;
+		npm_command: string;
+		npm_config_cache: string;
+		npm_config_globalconfig: string;
+		npm_config_global_prefix: string;
+		npm_config_init_module: string;
+		npm_config_local_prefix: string;
+		npm_config_node_gyp: string;
+		npm_config_noproxy: string;
+		npm_config_npm_version: string;
+		npm_config_prefix: string;
+		npm_config_userconfig: string;
+>>>>>>> main
 		npm_config_user_agent: string;
 		npm_node_execpath: string;
 		SHLVL: string;

@@ -83,18 +83,47 @@
 
   // filtering
   $: {
+    const monthAliases = {
+      january: 0, jan: 0,
+      february: 1, feb: 1,
+      march: 2, mar: 2,
+      april: 3, apr: 3,
+      may: 4,
+      june: 5, jun: 5,
+      july: 6, jul: 6,
+      august: 7, aug: 7,
+      september: 8, sep: 8,
+      october: 9, oct: 9,
+      november: 10, nov: 10,
+      december: 11, dec: 11
+    };
+
+    const lowerSearch = searchTerm.toLowerCase().trim();
+    const monthMatch = monthAliases[lowerSearch];
+
     filteredEmployees = employees.filter(emp => {
-      const matchesSearch = searchTerm === '' || 
-        String(emp.name || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
-        String(emp.employee_no || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
-        String(emp.department || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
-        String(emp.position_title || '').toLowerCase().includes(searchTerm.toLowerCase());
-      
-      // Convert processed_date_time to status for filtering
       const empStatus = emp.processed_date_time ? 'processed' : 'unprocessed';
       const matchesStatus = statusFilter === 'all' || empStatus === statusFilter;
-      
-      return matchesSearch && matchesStatus;
+
+      // Check string-based fields
+      const matchesField = (field) =>
+        String(field || '').toLowerCase().includes(lowerSearch);
+
+      // Check month match in date fields
+      const empDateHired = new Date(emp.date_hired);
+      const empLastDay = new Date(emp.last_day);
+      const matchesMonth =
+        monthMatch !== undefined &&
+        (empDateHired.getMonth() === monthMatch || empLastDay.getMonth() === monthMatch);
+
+      return (
+        lowerSearch === '' ||
+        matchesField(emp.name) ||
+        matchesField(emp.employee_no) ||
+        matchesField(emp.department) ||
+        matchesField(emp.position_title) ||
+        matchesMonth
+      ) && matchesStatus;
     });
   }
 

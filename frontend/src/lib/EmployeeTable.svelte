@@ -24,7 +24,13 @@
         if (sortField === 'date_hired' || sortField === 'last_day') {
             aVal = new Date(aVal);
             bVal = new Date(bVal);
-        } else {
+        } 
+        else if (sortField === 'employee_no') {
+            // Pad numbers as strings for correct string sorting
+            aVal = String(aVal || '').padStart(10, '0');
+            bVal = String(bVal || '').padStart(10, '0');
+        }
+        else {
             // Convert to string for string comparison
             aVal = String(aVal || '').toLowerCase();
             bVal = String(bVal || '').toLowerCase();
