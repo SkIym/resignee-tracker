@@ -2,6 +2,7 @@
   let startDate = '';
   let endDate = '';
   let exportConfirmed = false;
+  import { BASE_URL } from "../constants";
 
   async function handleExportClick() {
     if (!startDate || !endDate) {
@@ -13,7 +14,7 @@
       const isoStart = new Date(startDate).toISOString();
       const isoEnd = new Date(endDate).toISOString();
 
-      const res = await fetch(`https://localhost:8000/resignees/report?start_date=${isoStart}&end_date=${isoEnd}`, {
+      const res = await fetch(`${BASE_URL}/resignees/report?start_date=${isoStart}&end_date=${isoEnd}`, {
         credentials: 'include' 
       });
   

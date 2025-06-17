@@ -1,9 +1,10 @@
 <script lang="ts">
   import { goto } from '$app/navigation'; 
+  import { BASE_URL } from '../constants';
 
    async function handleLogout() {   
     try {
-      const res = await fetch('https://localhost:8000/logout', {
+      const res = await fetch(`${BASE_URL}/logout`, {
         method: 'POST',
         credentials: 'include', // <-- Required to send and delete HttpOnly cookies
       });

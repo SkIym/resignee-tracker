@@ -1,6 +1,6 @@
 <script>
 	import { goto } from '$app/navigation';
-
+    import { BASE_URL } from '../../constants';
 	let username = '';
 	let password = '';
 	let confirmPassword = '';
@@ -24,7 +24,7 @@
 			formData.append('username', username);
 			formData.append('password', password);
 
-			const response = await fetch('http://localhost:8000/accounts', {
+			const response = await fetch(`${BASE_URL}/accounts`, {
 				method: 'POST',
 				headers: {
 					'Content-Type': 'application/x-www-form-urlencoded',
