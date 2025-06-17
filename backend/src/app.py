@@ -3,8 +3,8 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.requests import Request
 from fastapi.responses import Response
 from fastapi.responses import JSONResponse
-from services import verify_token
-from routes import router
+from src.services import verify_token
+from src.routes import router
 from typing import Callable, Awaitable
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
