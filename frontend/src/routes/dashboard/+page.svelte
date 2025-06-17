@@ -20,7 +20,7 @@
   let response = '';
 
   onMount(async () => {
-  const res = await fetch(`${BASE_URL}}/check-auth`, {
+  const res = await fetch(`${BASE_URL}/check-auth`, {
     method: 'GET',
     credentials: 'include'
   });
