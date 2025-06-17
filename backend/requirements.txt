@@ -4,3 +4,4 @@ supabase
 XlsxWriter
 cryptography
 dotenv
+mangum
