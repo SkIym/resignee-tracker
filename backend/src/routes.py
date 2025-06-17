@@ -199,7 +199,10 @@ async def get_excel_report(start_date: str, end_date: str):
                     "department": decrypt_field(entry['department']),
                     "date_hired": entry.get('date_hired', ""),
                     "last_day": entry.get('last_day', ""),
-                    "processed_date_time": entry.get('processed_date_time', "")
+                    "processed_date_time": (
+                        datetime.fromisoformat(entry['processed_date_time']).isoformat()
+                        if entry.get('processed_date_time') else ""
+                    )
                 })
             excel_file = BytesIO()
             generate_report(excel_file, decrypted_data)

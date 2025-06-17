@@ -49,30 +49,36 @@ def generate_report(file: BytesIO, data: Sequence[Mapping[str, Any]]) -> None:
     worksheet = workbook.add_worksheet()
 
     header_format = workbook.add_format({'bold': True})
-
-    headers = ["Employee no.", "Date hired", "Cost center", "Last Name", "First Name", "Middle Name", "Position Title", "Rank", "Department", "Last day with AUB", "Date processed"]
+    headers = [
+        "Employee no.", "Date hired", "Cost center", "Last Name", "First Name", "Middle Name",
+        "Position Title", "Rank", "Department", "Last day with AUB", "Date processed"
+    ]
     worksheet.write_row(0, 0, headers, header_format)
 
     i = 1
-
     for entry in data:
-        details: list[Any] = [entry['employee_no'],
-        entry['date_hired'],
-        entry['cost_center'],
-        entry['last_name'],
-        entry['first_name'], 
-        entry['middle_name'],
-        entry['position_title'],
-        entry['rank'],
-        entry['department'],
-        entry['last_day'],
-        datetime.fromisoformat(entry['processed_date_time'].replace("Z", "+00:00")).strftime("%B %d, %Y %I:%M %p")]
+        # Keep date in raw ISO format
+        processed_dt = entry.get('processed_date_time', '') or ''
+
+        details = [
+            entry['employee_no'],
+            entry['date_hired'],
+            entry['cost_center'],
+            entry['last_name'],
+            entry['first_name'], 
+            entry['middle_name'],
+            entry['position_title'],
+            entry['rank'],
+            entry['department'],
+            entry['last_day'],
+            processed_dt  # <-- write as ISO string
+        ]
         worksheet.write_row(i, 0, details)
         i += 1
 
     worksheet.autofit()
     workbook.close()
-
+    
 async def verify_token(token: str):
     secret_key = os.getenv("JWT_SECRET_KEY")
     if not secret_key:
