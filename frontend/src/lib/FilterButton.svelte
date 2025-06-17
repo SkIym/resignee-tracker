@@ -7,17 +7,19 @@
   let isOpen = false;
   let selectedField = '';
   let inputValue = '';
+  let dateStart = '';
+  let dateEnd = '';
   let activeFilters: { field: string, value: string }[] = [];
-  
+
   const fields = [
-    "Employee no.",
-    "Date hired",
-    "Cost center",
+    "Employee No.",
+    "Date Hired",
+    "Cost Center",
     "Name",
     "Position",
     "Rank",
     "Department",
-    "Last day",
+    "Last Day",
     "Status"
   ];
 
@@ -28,11 +30,38 @@
   function selectField(field: string) {
     selectedField = field;
     inputValue = '';
+    dateStart = '';
+    dateEnd = '';
   }
 
 
   function addFilter() {
-    if (selectedField && inputValue) {
+    if (selectedField === "Date Hired" || selectedField === "Last Day") {
+      if (dateStart && dateEnd) {
+        const formattedStart = new Date(dateStart).toLocaleDateString('en-US', {
+        month: '2-digit',
+        day: '2-digit',
+        year: 'numeric'
+      });
+
+        const formattedEnd = new Date(dateEnd).toLocaleDateString('en-US', {
+        month: '2-digit',
+        day: '2-digit',
+        year: 'numeric'
+      });
+        
+        
+        const value = `${formattedStart} to ${formattedEnd}`;
+        const exists = activeFilters.find(f => f.field === selectedField && f.value === value);
+        if (!exists) {
+          activeFilters = [...activeFilters, { field: selectedField, value }];
+          applyFilters();
+        }
+        selectedField = '';
+        dateStart = '';
+        dateEnd = '';
+      }
+    } else if (selectedField && inputValue) {
       const exists = activeFilters.find(f => f.field === selectedField && f.value === inputValue);
       if (!exists) {
         activeFilters = [...activeFilters, { field: selectedField, value: inputValue }];
@@ -42,6 +71,7 @@
       inputValue = '';
     }
   }
+
 
    function removeFilter(index: number) {
     activeFilters = activeFilters.filter((_, i) => i !== index);
@@ -60,43 +90,35 @@
     applyFilters();
   }
 
-function applyFilters() {
-  let filtered = employees;
-
-  activeFilters.forEach(filter => {
+  function applyFilters() {
+    let filtered = employees;
+    activeFilters.forEach(filter => {
     const key = mapFieldToKey(filter.field);
     filtered = filtered.filter(emp => {
-      const fieldValue = emp[key]?.toString().toLowerCase();
-      const filterValue = filter.value.toLowerCase();
+    const fieldValue = emp[key]?.toString().toLowerCase();
+    const filterValue = filter.value.toLowerCase();
 
       
-      if (filter.field === "Employee no." || filter.field === "Cost center") {
-        return fieldValue === filterValue;
-      }
+    if (filter.field === "Employee No." || filter.field === "Cost Center") {
+      return fieldValue === filterValue;
+    }
 
-      if (filter.field === "Date hired" || filter.field === "Last day") {
+    if (filter.field === "Date Hired" || filter.field === "Last Day") {
+        const [start, end] = filter.value.split(' to ');
         try {
-          const date = parseISO(fieldValue);
-          const month = format(date, 'LLLL').toLowerCase();
-          const shortMonth = format(date, 'LLL').toLowerCase();
-          const year = format(date, 'yyyy');
-
-          return (
-            month.includes(filterValue) ||
-            shortMonth.includes(filterValue) ||
-            year.includes(filterValue) ||
-            fieldValue.toLowerCase().includes(filterValue)
-          );
+          const date = parseISO(emp[key]);
+          return date >= new Date(start) && date <= new Date(end);
         } catch {
           return false;
         }
       }
-      if (filter.field === "Status") {
-        const normalized = fieldValue ? 'processed' : 'unprocessed';
-        return normalized === filterValue.toLowerCase();
-      }
 
-      return fieldValue?.toString().toLowerCase().includes(filterValue);
+    if (filter.field === "Status") {
+      const normalized = fieldValue ? 'processed' : 'unprocessed';
+      return normalized === filterValue.toLowerCase();
+    }
+
+    return fieldValue?.toString().toLowerCase().includes(filterValue);
     });
   });
 
@@ -104,18 +126,19 @@ function applyFilters() {
 }
 function mapFieldToKey(field: string): string {
   const map: Record<string, string> = {
-    "Employee no.": "employee_no",
-    "Date hired": "date_hired",
-    "Cost center": "cost_center",
+    "Employee No.": "employee_no",
+    "Date Hired": "date_hired",
+    "Cost Center": "cost_center",
     "Name": "name",
     "Position": "position_title",
     "Rank": "rank",
     "Department": "department",
-    "Last day": "last_day",
+    "Last Day": "last_day",
     "Status": "processed_date_time"
   };
   return map[field] || field;
 }
+
 
 </script>
 
@@ -174,49 +197,53 @@ function mapFieldToKey(field: string): string {
 
   /* Filter Column Name Buttons */
   .field-option input[type="radio"] {
-  appearance: none;
-  width: 1rem;
-  height: 1rem;
-  border: 2px solid #d1d5db;    
-  border-radius: 9999px;
-  background-color: #f9fafb;     
-  display: inline-block;
-  position: relative;
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
+    appearance: none;
+    width: 1rem;
+    height: 1rem;
+    border: 2px solid #d1d5db;    
+    border-radius: 9999px;
+    background-color: #f9fafb;     
+    display: inline-block;
+    position: relative;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
 
-.field-option input[type="radio"]:checked {
-  background-color: #3b82f6;      
-  border-color: #3b82f6;
-}
+  .field-option input[type="radio"]:checked {
+    background-color: #3b82f6;      
+    border-color: #3b82f6;
+  }
 
-.field-option input[type="radio"]:checked::after {
-  content: '';
-  position: absolute;
-  top: 2px;
-  left: 2px;
-  width: 0.5rem;
-  height: 0.5rem;
-  background-color: white;
-  border-radius: 9999px;
-}
+  .field-option input[type="radio"]:checked::after {
+    content: '';
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    width: 0.5rem;
+    height: 0.5rem;
+    background-color: white;
+    border-radius: 9999px;
+  }
 
+  
   .filter-input {
     display: flex;
-    align-items: center;
+    flex-direction: column;
     gap: 0.5rem;
     margin-bottom: 1rem;
   }
 
-  .filter-input input {
-    flex: 1;
-    padding: 0.5rem 0.75rem;
+  .date-range input[type="date"] {
+    padding: 0.5rem 0.80rem;
+    font-size: 0.75rem;
+    font-family: 'Open Sans', sans-serif;
+    text-transform: uppercase;
     border: 1px solid #d1d5db;
-    border-radius: 0.375rem;
-    background-color: #f9fafb; 
+    border-radius: 9999px;
+    background-color: #f9fafb;
     color: #111827;
-    }
+
+  }
 
   .active-filters {
     display: flex;
@@ -226,31 +253,31 @@ function mapFieldToKey(field: string): string {
   }
 
   .filter-tag {
-  background-color: #3b82f6;
-  color: white;
-  padding: 0.35rem 0.75rem;
-  border-radius: 9999px;
-  font-size: 0.75rem;
-  display: flex;
-  align-items: center;
-  gap: 0.4rem;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  font-weight: 500;
-  letter-spacing: 0.2px;
-}
+    background-color: #3b82f6;
+    color: white;
+    padding: 0.35rem 0.75rem;
+    border-radius: 9999px;
+    font-size: 0.75rem;
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    font-weight: 500;
+    letter-spacing: 0.2px;
+  }
 
   .filter-tag button {
-  background: transparent;
-  border: none;
-  color: white;
-  cursor: pointer;
-  font-size: 0.85rem;
-  padding: 0;
-  line-height: 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
+    background: transparent;
+    border: none;
+    color: white;
+    cursor: pointer;
+    font-size: 0.85rem;
+    padding: 0;
+    line-height: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
 
   .close-button {
     position: absolute;
@@ -273,11 +300,10 @@ function mapFieldToKey(field: string): string {
   .divider {
   border: none;
   height: 1px;
-  background-color: #d1d5db; /* Tailwind's gray-300 */
+  background-color: #d1d5db; 
   margin: 0.75rem 0;
 }
 
-  
 </style>
 
 
@@ -304,22 +330,82 @@ function mapFieldToKey(field: string): string {
       </div>
       <hr class="divider" />
 
-      {#if selectedField}
-        <div class="filter-input">
-          <input
-          type="text"
-          bind:value={inputValue}
-          placeholder={`Enter ${selectedField}...`}
-          class="w-full px-2 py-1 border rounded mb-3"
-          on:keydown={(e) => {
-            if (e.key === 'Enter') {
+  {#if selectedField === "Date Hired" || selectedField === "Last Day"}
+    <div class="date-range">
+        <input
+          type="date"
+          bind:value={dateStart}
+          on:change={() => {
+            if (dateStart && dateEnd) {
               addFilter();
+              isOpen = false;
             }
           }}
         />
-        
-        </div>
-      {/if}
+        <input
+          type="date"
+          bind:value={dateEnd}
+          on:change={() => {
+            if (dateStart && dateEnd) {
+              addFilter();
+              isOpen = false;
+            }
+          }}
+        />
+      </div>
+
+
+  {:else if selectedField === "Status"} 
+    <div class="field-grid mb-2" style="gap: 0.25rem 0.70rem;">
+      <label class="field-option">
+        <input
+          type="radio"
+          name="status-filter"
+          value="processed"
+          on:change={() => {
+            inputValue = 'Processed';
+            addFilter();
+            
+          }}
+        />
+        <span class="inline-block px-5 py-1.5 rounded-full text-sm font-[Open_Sans] font-550 bg-[#CFEED8] text-[#1E9F37]">
+          Processed
+        </span>
+      </label>
+
+      <label class="field-option">
+        <input
+          type="radio"
+          name="status-filter"
+          value="unprocessed"
+          on:change={() => {
+            inputValue = 'Unprocessed';
+            addFilter();
+            
+          }}
+        />
+        <span class="inline-block px-3 py-1.5 rounded-full text-sm font-[Open_Sans] font-550 bg-[#FED9DA] text-[#D7313E]">
+          Unprocessed
+        </span>
+      </label>
+    </div>
+
+
+    {:else}
+      <div class="filter-input">
+        <input
+        type="text"
+        bind:value={inputValue}
+        placeholder={`Enter ${selectedField}...`}
+        class="w-full px-2 py-1 border rounded mb-0.25"
+        on:keydown={(e) => {
+          if (e.key === 'Enter') {
+            addFilter();
+          }
+        }}
+      />
+      </div>
+    {/if}
 
       {#if activeFilters.length > 0}
         <div class="active-filters">
