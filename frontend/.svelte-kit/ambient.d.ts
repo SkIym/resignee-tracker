@@ -27,16 +27,19 @@
  */
 declare module '$env/static/private' {
 	export const LESSOPEN: string;
+	export const PYTHONIOENCODING: string;
 	export const USER: string;
 	export const npm_config_user_agent: string;
 	export const npm_node_execpath: string;
 	export const SHLVL: string;
 	export const npm_config_noproxy: string;
+	export const MOTD_SHOWN: string;
 	export const HOME: string;
 	export const OLDPWD: string;
 	export const TERM_PROGRAM_VERSION: string;
 	export const VSCODE_IPC_HOOK_CLI: string;
 	export const npm_package_json: string;
+	export const PYTHONUNBUFFERED: string;
 	export const PS1: string;
 	export const npm_config_userconfig: string;
 	export const npm_config_local_prefix: string;
@@ -119,16 +122,19 @@ declare module '$env/static/public' {
 declare module '$env/dynamic/private' {
 	export const env: {
 		LESSOPEN: string;
+		PYTHONIOENCODING: string;
 		USER: string;
 		npm_config_user_agent: string;
 		npm_node_execpath: string;
 		SHLVL: string;
 		npm_config_noproxy: string;
+		MOTD_SHOWN: string;
 		HOME: string;
 		OLDPWD: string;
 		TERM_PROGRAM_VERSION: string;
 		VSCODE_IPC_HOOK_CLI: string;
 		npm_package_json: string;
+		PYTHONUNBUFFERED: string;
 		PS1: string;
 		npm_config_userconfig: string;
 		npm_config_local_prefix: string;
