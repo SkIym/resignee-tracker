@@ -82,7 +82,6 @@
     isOpen = false;
     selectedField = '';
     inputValue = '';
-    clearAllFilters();
   }
 
   function clearAllFilters() {
@@ -141,6 +140,120 @@ function mapFieldToKey(field: string): string {
 
 
 </script>
+
+<div class="dropdown">
+  <button class="filter-button" on:click={toggleDropdown}>
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+      <path stroke-linecap="round" stroke-linejoin="round" d="M12 3c2.755 0 5.455.232 8.083.678.533.09.917.556.917 1.096v1.044a2.25 2.25 0 0 1-.659 1.591l-5.432 5.432a2.25 2.25 0 0 0-.659 1.591v2.927a2.25 2.25 0 0 1-1.244 2.013L9.75 21v-6.568a2.25 2.25 0 0 0-.659-1.591L3.659 7.409A2.25 2.25 0 0 1 3 5.818V4.774c0-.54.384-1.006.917-1.096A48.32 48.32 0 0 1 12 3Z" />
+    </svg>
+    Filter
+  </button>
+
+  {#if isOpen}
+    <div class="dropdown-panel">
+      <button class="close-button" on:click={closeDropdown}>✕</button>
+
+      <div class="field-grid">
+        {#each fields as field}
+          <label class="field-option">
+            <input type="radio" name="filter" value={field} on:change={() => selectField(field)} checked={selectedField === field} />
+            {field}
+          </label>
+        {/each}
+      </div>
+      <hr class="divider" />
+
+  {#if selectedField === "Date Hired" || selectedField === "Last Day"}
+    <div class="date-range">
+        <input
+          type="date"
+          bind:value={dateStart}
+          on:change={() => {
+            if (dateStart && dateEnd) {
+              addFilter();
+              isOpen = false;
+            }
+          }}
+        />
+        <input
+          type="date"
+          bind:value={dateEnd}
+          on:change={() => {
+            if (dateStart && dateEnd) {
+              addFilter();
+              isOpen = false;
+            }
+          }}
+        />
+      </div>
+
+
+  {:else if selectedField === "Status"} 
+    <div class="field-grid mb-2" style="gap: 0.25rem 0.70rem;">
+      <label class="field-option">
+        <input
+          type="radio"
+          name="status-filter"
+          value="processed"
+          on:change={() => {
+            inputValue = 'Processed';
+            addFilter();
+            
+          }}
+        />
+        <span class="inline-block px-5 py-1.5 rounded-full text-sm font-[Open_Sans] font-550 bg-[#CFEED8] text-[#1E9F37]">
+          Processed
+        </span>
+      </label>
+
+      <label class="field-option">
+        <input
+          type="radio"
+          name="status-filter"
+          value="unprocessed"
+          on:change={() => {
+            inputValue = 'Unprocessed';
+            addFilter();
+            
+          }}
+        />
+        <span class="inline-block px-3 py-1.5 rounded-full text-sm font-[Open_Sans] font-550 bg-[#FED9DA] text-[#D7313E]">
+          Unprocessed
+        </span>
+      </label>
+    </div>
+
+
+    {:else}
+      <div class="filter-input">
+        <input
+        type="text"
+        bind:value={inputValue}
+        placeholder={`Enter ${selectedField}...`}
+        class="w-full px-2 py-1 border rounded mb-0.25"
+        on:keydown={(e) => {
+          if (e.key === 'Enter') {
+            addFilter();
+          }
+        }}
+      />
+      </div>
+    {/if}
+
+      {#if activeFilters.length > 0}
+        <div class="active-filters">
+          {#each activeFilters as filter, index}
+            <div class="filter-tag">
+              {filter.field} = {filter.value}
+              <button on:click={() => removeFilter(index)}>×</button>
+            </div>
+          {/each}
+          <button class="clear-button" on:click={clearAllFilters}>Clear All</button>
+        </div>
+      {/if}
+    </div>
+  {/if}
+</div>
 
 <style>
   .dropdown {
@@ -290,6 +403,20 @@ function mapFieldToKey(field: string): string {
     color: #ef4444;
   }
 
+  .clear-button {
+    background-color: #ef4444;
+    color: white;
+    padding: 0.35rem 0.75rem;
+    border-radius: 9999px;
+    font-size: 0.75rem;
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    font-weight: 500;
+    letter-spacing: 0.2px;
+  }
+
   svg {
     width: 1.5rem;
     height: 1.5rem;
@@ -305,120 +432,3 @@ function mapFieldToKey(field: string): string {
 }
 
 </style>
-
-
-
-<div class="dropdown">
-  <button class="filter-button" on:click={toggleDropdown}>
-    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-      <path stroke-linecap="round" stroke-linejoin="round" d="M12 3c2.755 0 5.455.232 8.083.678.533.09.917.556.917 1.096v1.044a2.25 2.25 0 0 1-.659 1.591l-5.432 5.432a2.25 2.25 0 0 0-.659 1.591v2.927a2.25 2.25 0 0 1-1.244 2.013L9.75 21v-6.568a2.25 2.25 0 0 0-.659-1.591L3.659 7.409A2.25 2.25 0 0 1 3 5.818V4.774c0-.54.384-1.006.917-1.096A48.32 48.32 0 0 1 12 3Z" />
-    </svg>
-    Filter
-  </button>
-
-  {#if isOpen}
-    <div class="dropdown-panel">
-      <button class="close-button" on:click={closeDropdown}>✕</button>
-
-      <div class="field-grid">
-        {#each fields as field}
-          <label class="field-option">
-            <input type="radio" name="filter" value={field} on:change={() => selectField(field)} checked={selectedField === field} />
-            {field}
-          </label>
-        {/each}
-      </div>
-      <hr class="divider" />
-
-  {#if selectedField === "Date Hired" || selectedField === "Last Day"}
-    <div class="date-range">
-        <input
-          type="date"
-          bind:value={dateStart}
-          on:change={() => {
-            if (dateStart && dateEnd) {
-              addFilter();
-              isOpen = false;
-            }
-          }}
-        />
-        <input
-          type="date"
-          bind:value={dateEnd}
-          on:change={() => {
-            if (dateStart && dateEnd) {
-              addFilter();
-              isOpen = false;
-            }
-          }}
-        />
-      </div>
-
-
-  {:else if selectedField === "Status"} 
-    <div class="field-grid mb-2" style="gap: 0.25rem 0.70rem;">
-      <label class="field-option">
-        <input
-          type="radio"
-          name="status-filter"
-          value="processed"
-          on:change={() => {
-            inputValue = 'Processed';
-            addFilter();
-            
-          }}
-        />
-        <span class="inline-block px-5 py-1.5 rounded-full text-sm font-[Open_Sans] font-550 bg-[#CFEED8] text-[#1E9F37]">
-          Processed
-        </span>
-      </label>
-
-      <label class="field-option">
-        <input
-          type="radio"
-          name="status-filter"
-          value="unprocessed"
-          on:change={() => {
-            inputValue = 'Unprocessed';
-            addFilter();
-            
-          }}
-        />
-        <span class="inline-block px-3 py-1.5 rounded-full text-sm font-[Open_Sans] font-550 bg-[#FED9DA] text-[#D7313E]">
-          Unprocessed
-        </span>
-      </label>
-    </div>
-
-
-    {:else}
-      <div class="filter-input">
-        <input
-        type="text"
-        bind:value={inputValue}
-        placeholder={`Enter ${selectedField}...`}
-        class="w-full px-2 py-1 border rounded mb-0.25"
-        on:keydown={(e) => {
-          if (e.key === 'Enter') {
-            addFilter();
-          }
-        }}
-      />
-      </div>
-    {/if}
-
-      {#if activeFilters.length > 0}
-        <div class="active-filters">
-          {#each activeFilters as filter, index}
-            <div class="filter-tag">
-              {filter.field} = {filter.value}
-              <button on:click={() => removeFilter(index)}>×</button>
-            </div>
-          {/each}
-        </div>
-      {/if}
-    </div>
-  {/if}
-</div>
-
-

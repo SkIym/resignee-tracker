@@ -6,6 +6,8 @@
 
     let sortField: keyof Employee | '' = '';
     let sortDirection = 'asc';
+    let editingEmployeeId: string | null = null;
+    let editingValue: string = '';
 
     function handleSort(field: 'name' | 'employee_no' | 'department' | 'position_title' | 'date_hired' | 'last_day') {
         if (sortField == field) {
@@ -48,6 +50,38 @@
       });
     }
 
+    function formatDateForInput(dateString: string | null | undefined) {
+        if (!dateString) return '';
+        
+        const date = new Date(dateString);
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const day = String(date.getDate()).padStart(2, '0');
+        
+        return `${year}-${month}-${day}`;
+    }
+
+    function startEditing(employee: Employee) {
+        editingEmployeeId = employee.employee_no;
+        editingValue = formatDateForInput(employee.last_day);
+    }
+
+    function saveEdit(employee: Employee) {
+        const employeeIndex = employees.findIndex(emp => emp.employee_no === employee.employee_no);
+        if (employeeIndex !== -1) {
+            employees[employeeIndex].last_day = editingValue || '';
+            employees = [...employees];
+        }
+        
+        editingEmployeeId = null;
+        editingValue = '';
+    }
+
+    function cancelEdit() {
+        editingEmployeeId = null;
+        editingValue = '';
+    }
+
     function toggleStatus(employee: Employee) {
         const currentStatus = employee.processed_date_time ? 'processed' : 'unprocessed';
         // Call the callback function passed from parent
@@ -55,7 +89,16 @@
             onstatustoggle({ detail: { employee } });
         }
     }
+
+    // Handle escape key to cancel editing
+    function handleKeydown(event: KeyboardEvent) {
+        if (event.key === 'Escape') {
+            cancelEdit();
+        }
+    } 
 </script>
+
+<svelte:window on:keydown={handleKeydown} />
 
 <div class="overflow-x-auto">
     <table class="min-w-full text-sm text-left text-gray-700 bg-white">
@@ -207,8 +250,47 @@
                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                     {String(employee.department || '')}
                 </td>
+
+                <!-- Editable Last Day Cell -->
                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                    {formatDate(employee.last_day)}
+                    <div class="flex items-center gap-2">
+                        {#if editingEmployeeId === employee.employee_no}
+                            <!-- Edit Mode: Date Input + Check Icon -->
+                            <input
+                                type="date"
+                                bind:value={editingValue}
+                                class="text-sm border border-gray-300 rounded px-2 py-1 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                on:blur={() => saveEdit(employee)}
+                            />
+                            <button
+                                type="button"
+                                on:click={() => saveEdit(employee)}
+                                class="text-green-600 hover:text-green-800 transition-colors"
+                                title="Save changes"
+                            >
+                                <!-- Check Icon -->
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                                </svg>
+                            </button>
+                        {:else}
+                            <!-- Display Mode: Date + Pencil Icon -->
+                            <span class="flex-1">
+                                {formatDate(employee.last_day)}
+                            </span>
+                            <button
+                                type="button"
+                                on:click={() => startEditing(employee)}
+                                class="text-gray-400 hover:text-gray-600 transition-colors"
+                                title="Edit last day"
+                            >
+                                <!-- Pencil/Edit Icon -->
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+                                </svg>
+                            </button>
+                        {/if}
+                    </div>
                 </td>
 
                 <!-- Status Badge -->
