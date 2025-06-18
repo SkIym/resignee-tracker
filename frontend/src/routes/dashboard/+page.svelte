@@ -1,4 +1,4 @@
-<script>
+<script lang="ts">
   import { onMount } from 'svelte';
   import { goto } from '$app/navigation'; 
   import { BASE_URL } from '../../constants';
@@ -9,8 +9,10 @@
   import ExportCalendarButton from '$lib/ExportCalendarButton.svelte';
   import LogoutButton from '$lib/LogoutButton.svelte';
 
-  let employees = [];
-  let filteredEmployees = [];
+  import type { Employee } from '../../types';
+
+  let employees: Employee[] = [];
+  let filteredEmployees: Employee[] = [];
   let error = '';
   let searchTerm = '';
   let statusFilter = 'all';
@@ -70,39 +72,74 @@
       loading = false;
     } catch (e) {
       console.error('Load employees error:', e);
-      if (e.name === 'AbortError') {
-        error = 'Request timed out. Please check if the server is running.';
-      } else if (e.message.includes('fetch')) {
-        error = 'Cannot connect to server. Please check if the server is running on http://localhost:8000';
+      
+      if (e instanceof Error) {
+        if (e.name === 'AbortError') {
+          error = 'Request timed out. Please check if the server is running.';
+        } else if (e.message.includes('fetch')) {
+          error = 'Cannot connect to server. Please check if the server is running on http://localhost:8000';
+        } else {
+          error = e.message;
+        }
       } else {
-        error = e.message;
+        error = 'An unexpected error occurred';
       }
+      
       loading = false;
     }
   }
 
   // filtering
   $: {
+    const monthAliases = {
+      january: 0, jan: 0,
+      february: 1, feb: 1,
+      march: 2, mar: 2,
+      april: 3, apr: 3,
+      may: 4,
+      june: 5, jun: 5,
+      july: 6, jul: 6,
+      august: 7, aug: 7,
+      september: 8, sep: 8,
+      october: 9, oct: 9,
+      november: 10, nov: 10,
+      december: 11, dec: 11
+    };
+
+    const lowerSearch = searchTerm.toLowerCase().trim();
+    const monthMatch = monthAliases[lowerSearch as keyof typeof monthAliases];
+
     filteredEmployees = employees.filter(emp => {
-      const matchesSearch = searchTerm === '' || 
-        String(emp.name || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
-        String(emp.employee_no || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
-        String(emp.department || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
-        String(emp.position_title || '').toLowerCase().includes(searchTerm.toLowerCase());
-      
-      // Convert processed_date_time to status for filtering
       const empStatus = emp.processed_date_time ? 'processed' : 'unprocessed';
       const matchesStatus = statusFilter === 'all' || empStatus === statusFilter;
-      
-      return matchesSearch && matchesStatus;
+
+      // Check string-based fields
+      const matchesField = (field: unknown) =>
+        String(field || '').toLowerCase().includes(lowerSearch);
+
+      // Check month match in date fields
+      const empDateHired = new Date(emp.date_hired);
+      const empLastDay = new Date(emp.last_day);
+      const matchesMonth =
+        monthMatch !== undefined &&
+        (empDateHired.getMonth() === monthMatch || empLastDay.getMonth() === monthMatch);
+
+      return (
+        lowerSearch === '' ||
+        matchesField(emp.name) ||
+        matchesField(emp.employee_no) ||
+        matchesField(emp.department) ||
+        matchesField(emp.position_title) ||
+        matchesMonth
+      ) && matchesStatus;
     });
   }
 
-  function handleSearch(event) {
+  function handleSearch(event: { searchTerm: string }) {
     searchTerm = event.searchTerm;
   }
 
-  function handleFilter(event) {
+  function handleFilter(event: { detail: { filtered: Employee[] } }) {
     filteredEmployees = event.detail.filtered;
   }
 
@@ -132,12 +169,16 @@
       message = '';
       
     } catch (error) {
-      response = `Error: ${error.message}`;
+      if (error instanceof Error) {
+        response = `Error: ${error.message}`;
+      } else {
+        response = `Error: ${String(error)}`;
+      }
     }
   }
 
   // Function to handle status toggle from EmployeeTable
-  async function handleStatusToggle(event) {
+  async function handleStatusToggle(event: { detail: { employee: Employee, action?: string } }) {
     const { employee, action } = event.detail;
     
     try {
@@ -180,7 +221,8 @@
       
     } catch (error) {
       const actionName = action || (employee.processed_date_time ? 'unprocess' : 'process');
-      response = `Error ${actionName}ing employee: ${error.message}`;
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      response = `Error ${actionName}ing employee: ${errorMessage}`;
     }
   }
 </script>
@@ -198,8 +240,8 @@
       </div>
       <div class="flex gap-2">
         <FilterButton on:filter={handleFilter} employees={employees} />
-        <ExportCalendarButton data={employees} />
-        </div>
+        <ExportCalendarButton />
+      </div>
     </div>
 
     <!-- Table Container -->
