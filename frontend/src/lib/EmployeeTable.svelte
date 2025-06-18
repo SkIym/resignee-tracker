@@ -1,11 +1,13 @@
-<script>
-    export let employees = [];
-    export let onstatustoggle;
+<script lang="ts">
+    export let employees: Employee[] = [];
+    export let onstatustoggle: (event: { detail: { employee: Employee, action?: string } }) => void;
 
-    let sortField = '';
+    import type { Employee } from '../types';
+
+    let sortField: keyof Employee | '' = '';
     let sortDirection = 'asc';
 
-    function handleSort(field) {
+    function handleSort(field: 'name' | 'employee_no' | 'department' | 'position_title' | 'date_hired' | 'last_day') {
         if (sortField == field) {
             sortDirection = sortDirection === 'asc' ? 'desc' : 'asc';
         } else {
@@ -16,33 +18,29 @@
 
     $: sortedEmployees = [...employees].sort((a, b) => {
         if (!sortField) return 0;
-        
         let aVal = a[sortField];
         let bVal = b[sortField];
         
-        // date sorting
         if (sortField === 'date_hired' || sortField === 'last_day') {
-            aVal = new Date(aVal);
-            bVal = new Date(bVal);
-        } 
-        else if (sortField === 'employee_no') {
-            // Pad numbers as strings for correct string sorting
-            aVal = String(aVal || '').padStart(10, '0');
-            bVal = String(bVal || '').padStart(10, '0');
-        }
-        else {
-            // Convert to string for string comparison
-            aVal = String(aVal || '').toLowerCase();
-            bVal = String(bVal || '').toLowerCase();
+            const aDate = new Date(aVal || '1900-01-01');
+            const bDate = new Date(bVal || '1900-01-01');
+            
+            if (aDate < bDate) return sortDirection === 'asc' ? -1 : 1;
+            if (aDate > bDate) return sortDirection === 'asc' ? 1 : -1;
+            return 0;
         }
         
-        if (aVal < bVal) return sortDirection === 'asc' ? -1 : 1;
-        if (aVal > bVal) return sortDirection === 'asc' ? 1 : -1;
+        const aStr = String(aVal || '');
+        const bStr = String(bVal || '');
         
+        if (aStr < bStr) return sortDirection === 'asc' ? -1 : 1;
+        if (aStr > bStr) return sortDirection === 'asc' ? 1 : -1;
         return 0;
     });
 
-    function formatDate(dateString) {
+    function formatDate(dateString: string | null | undefined) {
+        if (!dateString) return 'N/A';
+        
         return new Date(dateString).toLocaleDateString('en-US', {
             year: 'numeric',
             month: 'short',
@@ -50,7 +48,7 @@
       });
     }
 
-    function toggleStatus(employee) {
+    function toggleStatus(employee: Employee) {
         const currentStatus = employee.processed_date_time ? 'processed' : 'unprocessed';
         // Call the callback function passed from parent
         if (onstatustoggle) {
