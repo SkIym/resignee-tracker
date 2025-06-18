@@ -7,7 +7,7 @@ from schemas import ResigneeDisplay, ResigneeCreate
 from services import parse_resignee_text, generate_report
 from datetime import datetime
 from supabase_client import supabase
-from io import BytesIO
+from io import StringIO
 from fastapi.responses import Response
 from datetime import timedelta
 from crypto_utils import encrypt_field, decrypt_field
@@ -195,9 +195,9 @@ async def edit_employee_last_day(
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.get("/resignees/report")
-async def get_excel_report(start_date: str, end_date: str):
+async def get_csv_report(start_date: str, end_date: str):
     """
-    Generate an Excel report of processed resignees within a selected timeframe.
+    Generate an CSV report of processed resignees within a selected timeframe.
     """
     try:
         end_datetime = datetime.fromisoformat(end_date)
@@ -218,29 +218,31 @@ async def get_excel_report(start_date: str, end_date: str):
             # Decrypt fields for the report if needed
             decrypted_data = []
             for entry in response.data:
+                print(entry['date_hired'])
+                print(entry['last_day'])
                 decrypted_data.append({
-                    "employee_no": decrypt_field(entry['employee_no']),
-                    "last_name": decrypt_field(entry['last_name']),
-                    "first_name": decrypt_field(entry['first_name']),
-                    "middle_name": decrypt_field(entry['middle_name']),
-                    "cost_center": decrypt_field(entry['cost_center']),
-                    "position_title": decrypt_field(entry['position_title']),
-                    "rank": decrypt_field(entry['rank']),
-                    "department": decrypt_field(entry['department']),
-                    "date_hired": entry.get('date_hired', ""),
-                    "last_day": entry.get('last_day', ""),
-                    "processed_date_time": (
-                        datetime.fromisoformat(entry['processed_date_time']).isoformat()
+                    "Employee no.": decrypt_field(entry['employee_no']),
+                    "Last Name": decrypt_field(entry['last_name']),
+                    "First Name": decrypt_field(entry['first_name']),
+                    "Middle Name": decrypt_field(entry['middle_name']),
+                    "Cost center": decrypt_field(entry['cost_center']),
+                    "Position Title": decrypt_field(entry['position_title']),
+                    "Rank": decrypt_field(entry['rank']),
+                    "Department": decrypt_field(entry['department']),
+                    "Date hired": entry['date_hired'],
+                    "Last day with AUB": entry['last_day'],
+                    "Date and Time processed": (
+                        datetime.fromisoformat(entry['processed_date_time'].replace("Z", "+00:00")).strftime("%B %d, %Y %I:%M %p")
                         if entry.get('processed_date_time') else ""
                     )
                 })
-            excel_file = BytesIO()
-            generate_report(excel_file, decrypted_data)
-            excel_file.seek(0)
+            csv_file = StringIO()
+            generate_report(csv_file, decrypted_data)
+
             return Response(
-                content=excel_file.read(),
-                media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-                headers={"Content-Disposition": "attachment; filename=export.xlsx"},
+                content=csv_file.getvalue(),
+                media_type="text/csv",
+                headers={"Content-Disposition": "attachment; filename=export.csv"},
             )
         else:
             raise HTTPException(status_code=404, detail="There were no resignees processed within the given period")
