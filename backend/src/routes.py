@@ -133,7 +133,6 @@ async def get_all_unprocessed_resignees():
         raise HTTPException(status_code=400, detail=str(e))
 
 # Endpoint to mark resignation entry as processed (will now not be returned to client )
-
 @router.put("/resignees/{employee_no}/process")
 async def mark_resignee_processed(employee_no: str = Path(...)):
     try:
@@ -171,6 +170,29 @@ async def unmark_resignee_processed(
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
 
+@router.put("/resignees/{employee_no}/last_day/edit")    
+async def edit_employee_last_day(
+    employee_no: str = Path(...),
+    last_day: str = Body(..., media_type="text/plain")
+):
+    """
+    Edit an employee's recorded last day.
+    Format: YYYY-MM-DD
+    """
+    try:
+        employee_no_hash = hash_employee_no(employee_no)
+        response = supabase.table("ResignedEmployees") \
+            .update({"last_day": last_day}) \
+            .eq("employee_no_hash", employee_no_hash) \
+            .execute()
+        
+        if response.data and len(response.data) > 0:
+            return {"message": f"Changed employee {employee_no} last day to {last_day}."}
+        else:
+            raise HTTPException(status_code=404, detail="Employee not found")
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 @router.get("/resignees/report")
 async def get_excel_report(start_date: str, end_date: str):
