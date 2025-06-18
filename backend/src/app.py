@@ -10,6 +10,9 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
 from pathlib import Path
 import uvicorn
+import sys
+import os
+from pathlib import Path
 
 app = FastAPI(swagger_ui_parameters={"syntaxHighlight": {"theme": "obsidian"}})
 
@@ -38,14 +41,24 @@ async def auth_middleware(request: Request, call_next: Callable[[Request], Await
             return JSONResponse(status_code=401, content={"detail": "Unauthorized"})
     return await call_next(request)
 
-app.mount("/", StaticFiles(directory="static", html=True), name="static")
+def get_base_path():
+    if getattr(sys, 'frozen', False):
+        return sys._MEIPASS
+    return os.path.dirname(os.path.abspath(__file__))
 
+# Then modify your static files mounting:
+base_path = Path(get_base_path())
+static_path = base_path / 'static'
+
+app.mount("/", StaticFiles(directory=static_path, html=True), name="static")
+
+# Update your SPA route
 @app.get("/{full_path:path}")
 async def serve_spa(full_path: str):
-    static_path = Path("static/index.html")
-    if not static_path.exists():
+    static_file = static_path / "index.html"
+    if not static_file.exists():
         return {"message": "Frontend not built"}
-    return FileResponse(static_path)
+    return FileResponse(static_file)
 
 if __name__ == "__main__":
     uvicorn.run("app:app", host="0.0.0.0", port=8000, reload=False)
