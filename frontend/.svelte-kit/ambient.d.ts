@@ -26,10 +26,6 @@
  * ```
  */
 declare module '$env/static/private' {
-<<<<<<< HEAD
-	export const LESSOPEN: string;
-	export const USER: string;
-=======
 	export const ACSetupSvcPort: string;
 	export const ACSvcPort: string;
 	export const ALLUSERSPROFILE: string;
@@ -71,7 +67,6 @@ declare module '$env/static/private' {
 	export const npm_config_npm_version: string;
 	export const npm_config_prefix: string;
 	export const npm_config_userconfig: string;
->>>>>>> main
 	export const npm_config_user_agent: string;
 	export const npm_node_execpath: string;
 	export const SHLVL: string;
@@ -162,10 +157,6 @@ declare module '$env/static/public' {
  */
 declare module '$env/dynamic/private' {
 	export const env: {
-<<<<<<< HEAD
-		LESSOPEN: string;
-		USER: string;
-=======
 		ACSetupSvcPort: string;
 		ACSvcPort: string;
 		ALLUSERSPROFILE: string;
@@ -207,7 +198,6 @@ declare module '$env/dynamic/private' {
 		npm_config_npm_version: string;
 		npm_config_prefix: string;
 		npm_config_userconfig: string;
->>>>>>> main
 		npm_config_user_agent: string;
 		npm_node_execpath: string;
 		SHLVL: string;
