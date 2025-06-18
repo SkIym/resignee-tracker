@@ -64,17 +64,47 @@
     function startEditing(employee: Employee) {
         editingEmployeeId = employee.employee_no;
         editingValue = formatDateForInput(employee.last_day);
+        // console.log(editingValue);
     }
 
-    function saveEdit(employee: Employee) {
-        const employeeIndex = employees.findIndex(emp => emp.employee_no === employee.employee_no);
-        if (employeeIndex !== -1) {
-            employees[employeeIndex].last_day = editingValue || '';
-            employees = [...employees];
+    async function saveEdit(employee: Employee) {
+        try {
+            const isoLastDay = new Date(editingValue).toISOString();
+
+            const res = await fetch(`/api/resignees/${employee.employee_no}/last_day/edit`, {
+                credentials: 'include' 
+            });
+
+            const response = await fetch(`/api/resignees/${employee.employee_no}/last_day/edit`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'text/plain',
+                },
+                body: editingValue || '',
+                credentials: 'include'
+            });
+
+            console.log(editingValue);
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                // throw new Error(errorData.detail || 'Failed to update last day');
+            }
+
+            const employeeIndex = employees.findIndex(emp => emp.employee_no === employee.employee_no);
+            if (employeeIndex !== -1) {
+                employees[employeeIndex].last_day = editingValue || '';
+                employees = [...employees];
+            }
+            
+        } catch (error) {
+            console.error('Error updating last day:', error);
+            const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+            alert(`Failed to update last day: ${errorMessage}`);
+        } finally {
+            editingEmployeeId = null;
+            editingValue = '';
         }
-        
-        editingEmployeeId = null;
-        editingValue = '';
     }
 
     function cancelEdit() {
