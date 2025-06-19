@@ -158,7 +158,6 @@
           'Content-Type': 'text/plain'
         },
         body: message,
-
         credentials: 'include'
       });
 
@@ -168,7 +167,7 @@
       }
 
       await loadEmployees();
-      
+      toast.success('Details saved');
       message = '';
       
     } catch (error) {

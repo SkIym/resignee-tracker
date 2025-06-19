@@ -113,11 +113,18 @@
     }
 
     function toggleStatus(employee: Employee) {
-        const currentStatus = employee.processed_date_time ? 'processed' : 'unprocessed';
+        const currentStatus = Boolean(employee.processed_date_time);
         // Call the callback function passed from parent
         if (onstatustoggle) {
             onstatustoggle({ detail: { employee } });
         }
+         setTimeout(() => {
+            if (currentStatus) {
+                toast.success('Marked as unprocessed');
+            } else {
+                toast.success('Marked as processed');
+            }
+        }, 300);
     }
 
     // Handle escape key to cancel editing
