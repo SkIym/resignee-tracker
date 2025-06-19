@@ -116,20 +116,14 @@
         const currentStatus = employee.processed_date_time ? 'processed' : 'unprocessed';
         const action = currentStatus === 'processed' ? 'unprocess' : 'process';
         
-        if (action === 'process') {
-            toast.success('Employee no. ' + employee.employee_no + ' marked as processed');
-        } else {
-            toast.success('Employee no. ' + employee.employee_no + ' marked as unprocessed');
-        }
-        
         if (onstatustoggle) {
             onstatustoggle({ detail: { employee, action } });
         }
          setTimeout(() => {
-            if (currentStatus) {
-                toast.success('Marked as unprocessed');
+            if (action === 'process') {
+                toast.success('Employee no. ' + employee.employee_no + ' marked as processed');
             } else {
-                toast.success('Marked as processed');
+                toast.success('Employee no. ' + employee.employee_no + ' marked as unprocessed');
             }
         }, 300);
     }
