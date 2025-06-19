@@ -26,82 +26,68 @@
  * ```
  */
 declare module '$env/static/private' {
-	export const ACSetupSvcPort: string;
-	export const ACSvcPort: string;
-	export const ALLUSERSPROFILE: string;
-	export const APPDATA: string;
-	export const COLOR: string;
-	export const CommonProgramFiles: string;
-	export const CommonProgramW6432: string;
-	export const COMPUTERNAME: string;
-	export const ComSpec: string;
-	export const CUDA_PATH: string;
-	export const CUDA_PATH_V12_8: string;
-	export const DriverData: string;
-	export const EDITOR: string;
-	export const EFC_12948_1262719628: string;
-	export const EFC_12948_1592913036: string;
-	export const EFC_12948_2283032206: string;
-	export const EFC_12948_2775293581: string;
-	export const EFC_12948_3789132940: string;
-	export const EnableLog: string;
-	export const FPS_BROWSER_APP_PROFILE_STRING: string;
-	export const FPS_BROWSER_USER_PROFILE_STRING: string;
-	export const HOME: string;
-	export const HOMEDRIVE: string;
-	export const HOMEPATH: string;
-	export const INIT_CWD: string;
-	export const JAVA_HOME: string;
-	export const LOCALAPPDATA: string;
-	export const LOGONSERVER: string;
-	export const NODE: string;
-	export const NODE_ENV: string;
-	export const npm_command: string;
-	export const npm_config_cache: string;
-	export const npm_config_globalconfig: string;
-	export const npm_config_global_prefix: string;
-	export const npm_config_init_module: string;
-	export const npm_config_local_prefix: string;
-	export const npm_config_node_gyp: string;
-	export const npm_config_noproxy: string;
-	export const npm_config_npm_version: string;
-	export const npm_config_prefix: string;
-	export const npm_config_userconfig: string;
+	export const LESSOPEN: string;
+	export const PYTHONIOENCODING: string;
+	export const USER: string;
 	export const npm_config_user_agent: string;
-	export const npm_execpath: string;
-	export const npm_lifecycle_event: string;
-	export const npm_lifecycle_script: string;
 	export const npm_node_execpath: string;
+	export const SHLVL: string;
+	export const npm_config_noproxy: string;
+	export const HOME: string;
+	export const TERM_PROGRAM_VERSION: string;
+	export const VSCODE_IPC_HOOK_CLI: string;
 	export const npm_package_json: string;
+	export const PYTHONUNBUFFERED: string;
+	export const PS1: string;
+	export const npm_config_userconfig: string;
+	export const npm_config_local_prefix: string;
+	export const PYDEVD_DISABLE_FILE_VALIDATION: string;
+	export const BUNDLED_DEBUGPY_PATH: string;
+	export const DBUS_SESSION_BUS_ADDRESS: string;
+	export const COLORTERM: string;
+	export const WSL_DISTRO_NAME: string;
+	export const COLOR: string;
+	export const WAYLAND_DISPLAY: string;
+	export const LOGNAME: string;
+	export const NAME: string;
+	export const WSL_INTEROP: string;
+	export const PULSE_SERVER: string;
+	export const _: string;
+	export const npm_config_prefix: string;
+	export const npm_config_npm_version: string;
+	export const TERM: string;
+	export const npm_config_cache: string;
+	export const npm_config_node_gyp: string;
+	export const PATH: string;
+	export const NODE: string;
 	export const npm_package_name: string;
+	export const XDG_RUNTIME_DIR: string;
+	export const DISPLAY: string;
+	export const VSCODE_DEBUGPY_ADAPTER_ENDPOINTS: string;
+	export const LANG: string;
+	export const DOTNET_BUNDLE_EXTRACT_BASE_DIR: string;
+	export const VIRTUAL_ENV_PROMPT: string;
+	export const LS_COLORS: string;
+	export const TERM_PROGRAM: string;
+	export const npm_lifecycle_script: string;
+	export const SHELL: string;
 	export const npm_package_version: string;
-	export const NUMBER_OF_PROCESSORS: string;
-	export const OneDrive: string;
-	export const OS: string;
-	export const Path: string;
-	export const PATHEXT: string;
-	export const PROCESSOR_ARCHITECTURE: string;
-	export const PROCESSOR_IDENTIFIER: string;
-	export const PROCESSOR_LEVEL: string;
-	export const PROCESSOR_REVISION: string;
-	export const ProgramData: string;
-	export const ProgramFiles: string;
-	export const ProgramW6432: string;
-	export const PROMPT: string;
-	export const PSModulePath: string;
-	export const PUBLIC: string;
-	export const RlsSvcPort: string;
-	export const SESSIONNAME: string;
-	export const SystemDrive: string;
-	export const SystemRoot: string;
-	export const TEMP: string;
-	export const TMP: string;
-	export const USERDOMAIN: string;
-	export const USERDOMAIN_ROAMINGPROFILE: string;
-	export const USERNAME: string;
-	export const USERPROFILE: string;
-	export const VBOX_HWVIRTEX_IGNORE_SVM_IN_USE: string;
-	export const windir: string;
+	export const npm_lifecycle_event: string;
+	export const LESSCLOSE: string;
+	export const VIRTUAL_ENV: string;
+	export const npm_config_globalconfig: string;
+	export const npm_config_init_module: string;
+	export const PWD: string;
+	export const npm_execpath: string;
+	export const XDG_DATA_DIRS: string;
+	export const npm_config_global_prefix: string;
+	export const npm_command: string;
+	export const WSL2_GUI_APPS_ENABLED: string;
+	export const HOSTTYPE: string;
+	export const WSLENV: string;
+	export const INIT_CWD: string;
+	export const EDITOR: string;
+	export const NODE_ENV: string;
 }
 
 /**
@@ -140,9 +126,7 @@ declare module '$env/dynamic/private' {
 		npm_node_execpath: string;
 		SHLVL: string;
 		npm_config_noproxy: string;
-		MOTD_SHOWN: string;
 		HOME: string;
-		OLDPWD: string;
 		TERM_PROGRAM_VERSION: string;
 		VSCODE_IPC_HOOK_CLI: string;
 		npm_package_json: string;
@@ -196,18 +180,7 @@ declare module '$env/dynamic/private' {
 		WSLENV: string;
 		INIT_CWD: string;
 		EDITOR: string;
-		ACSetupSvcPort: string;
-		SESSIONNAME: string;
-		SystemDrive: string;
-		SystemRoot: string;
-		TEMP: string;
-		TMP: string;
-		USERDOMAIN: string;
-		USERDOMAIN_ROAMINGPROFILE: string;
-		USERNAME: string;
-		USERPROFILE: string;
-		VBOX_HWVIRTEX_IGNORE_SVM_IN_USE: string;
-		windir: string;
+		NODE_ENV: string;
 		[key: `PUBLIC_${string}`]: undefined;
 		[key: `${string}`]: string | undefined;
 	}
@@ -226,6 +199,7 @@ declare module '$env/dynamic/private' {
  * ```
  */
 declare module '$env/dynamic/public' {
+	export const env: {
 		[key: `PUBLIC_${string}`]: string | undefined;
 	}
 }

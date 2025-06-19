@@ -66,7 +66,7 @@
     "src": "src/routes/+layout.svelte",
     "isEntry": true,
     "css": [
-      "_app/immutable/assets/_layout.DWDkC5kX.css"
+      "_app/immutable/assets/_layout.Ck0qZ4Lb.css"
     ]
   },
   "src/routes/+page.server.js": {
@@ -95,7 +95,7 @@
       "_client.js"
     ],
     "css": [
-      "_app/immutable/assets/_page.BD5RZTy5.css"
+      "_app/immutable/assets/_page.DOVtfJKo.css"
     ]
   },
   "src/routes/signup/+page.svelte": {
