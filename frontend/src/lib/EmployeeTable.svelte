@@ -1,4 +1,6 @@
 <script lang="ts">
+  import { BASE_URL } from '../constants';
+
     export let employees: Employee[] = [];
     export let onstatustoggle: (event: { detail: { employee: Employee, action?: string } }) => void;
 
@@ -75,7 +77,7 @@
                 throw new Error("Invalid date format");
             }
 
-            const res = await fetch(`https://localhost:8000/resignees/${employee.employee_no}/last_day/edit`, {
+            const res = await fetch(`${BASE_URL}/resignees/${employee.employee_no}/last_day/edit`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'text/plain',
