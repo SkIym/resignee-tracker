@@ -66,15 +66,21 @@
         editingValue = formatDateForInput(employee.last_day);
         // console.log(editingValue);
     }
-
     async function saveEdit(employee: Employee) {
         try {
+            const trimmed = editingValue.trim();
+            const parsedDate = new Date(trimmed);
+
+            if (!trimmed || isNaN(parsedDate.getTime())) {
+                throw new Error("Invalid date format");
+            }
+
             const res = await fetch(`https://localhost:8000/resignees/${employee.employee_no}/last_day/edit`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'text/plain',
                 },
-                body: editingValue,
+                body: trimmed,
                 credentials: 'include',
             });
 
@@ -83,21 +89,23 @@
                 throw new Error(`Error ${res.status}: ${text}`);
             }
 
-            // Update local state
             const idx = employees.findIndex(emp => emp.employee_no === employee.employee_no);
             if (idx !== -1) {
-                employees[idx].last_day = editingValue;
-                employees = [...employees]; // triggers reactivity
+                employees[idx].last_day = parsedDate.toISOString();
+                employees = [...employees];
             }
 
         } catch (error) {
             console.error('Error updating last day:', error);
-            alert(`Failed to update last day: ${error instanceof Error ? error.message : String(error)}`);
+            const msg = error instanceof Error ? error.message : 'Unknown error';
+            alert(`Failed to update last day: ${msg}`);
         } finally {
             editingEmployeeId = null;
             editingValue = '';
         }
     }
+
+
 
 
     function cancelEdit() {
