@@ -1,6 +1,7 @@
 <script lang="ts">
   import { onMount } from 'svelte';
-  import { goto } from '$app/navigation'; 
+  import { goto } from '$app/navigation';
+  import toast, { Toaster } from 'svelte-5-french-toast';
 
   import EmployeeTable from '$lib/EmployeeTable.svelte';
   import SearchBar from '$lib/SearchBar.svelte';
@@ -23,19 +24,19 @@
   const BASE_URL = 'https://localhost:8000';
 
 
-  onMount(async () => {
-  const res = await fetch('https://localhost:8000/check-auth', {
-    method: 'GET',
-    credentials: 'include'
+  onMount(async () => { 
+    const res = await fetch('https://localhost:8000/check-auth', {
+      method: 'GET',
+      credentials: 'include'
+    });
+
+    if (!res.ok) {
+      console.log("Unauthorized. Redirecting to login.");
+      goto('/'); 
+    }
+    await loadEmployees();
+
   });
-
-  if (!res.ok) {
-    console.log("Unauthorized. Redirecting to login.");
-    goto('/'); 
-  }
-  await loadEmployees();
-
-});
 
   async function loadEmployees() {
     try {

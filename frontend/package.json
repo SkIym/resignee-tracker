@@ -20,6 +20,7 @@
   },
   "dependencies": {
     "date-fns": "^4.1.0",
+    "svelte-5-french-toast": "^2.0.4",
     "xlsx": "^0.18.5"
   }
 }
