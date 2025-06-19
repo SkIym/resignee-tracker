@@ -6,7 +6,7 @@ from fastapi import APIRouter, HTTPException, Body, Path, Form
 from src.schemas import ResigneeDisplay, ResigneeCreate
 from src.services import parse_resignee_text, generate_report
 from datetime import datetime
-from supabase_client import supabase
+from src.supabase_client import supabase
 from io import StringIO
 from fastapi.responses import Response
 from datetime import timedelta
