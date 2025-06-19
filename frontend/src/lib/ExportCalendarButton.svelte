@@ -25,7 +25,7 @@
 
       const a = document.createElement('a');
       a.href = url;
-      a.download = `resignee_report_${startDate}_to_${endDate}.xlsx`;
+      a.download = `resignee_report_${startDate}_to_${endDate}.csv`;
       a.click();
       URL.revokeObjectURL(url);
 

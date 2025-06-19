@@ -2,15 +2,11 @@
 
 # Parsing function (from raw text from email to labeled data)
 from src.schemas import ResigneeCreate
-from io import BytesIO
-import xlsxwriter
-from datetime import datetime
+from io import StringIO
+import csv
 from typing import Sequence, Mapping, Any
-from fastapi.requests import Request
-from fastapi import HTTPException
 import jwt
 import os
-from jwt import PyJWTError
 
 def parse_resignee_text(raw_text: str) -> list[ResigneeCreate]:
     """
@@ -44,40 +40,17 @@ def parse_resignee_text(raw_text: str) -> list[ResigneeCreate]:
             continue
     return employees
 
-def generate_report(file: BytesIO, data: Sequence[Mapping[str, Any]]) -> None:
-    workbook = xlsxwriter.Workbook(file)
-    worksheet = workbook.add_worksheet()
+def generate_report(buffer: StringIO, data: Sequence[Mapping[str, Any]]) -> None:
 
-    header_format = workbook.add_format({'bold': True})
     headers = [
         "Employee no.", "Date hired", "Cost center", "Last Name", "First Name", "Middle Name",
-        "Position Title", "Rank", "Department", "Last day with AUB", "Date processed"
+        "Position Title", "Rank", "Department", "Last day with AUB", "Date and Time processed"
     ]
-    worksheet.write_row(0, 0, headers, header_format)
 
-    i = 1
-    for entry in data:
-        # Keep date in raw ISO format
-        processed_dt = entry.get('processed_date_time', '') or ''
+    writer = csv.DictWriter(buffer, fieldnames=headers)
+    writer.writeheader()
+    writer.writerows(data)
 
-        details = [
-            entry['employee_no'],
-            entry['date_hired'],
-            entry['cost_center'],
-            entry['last_name'],
-            entry['first_name'], 
-            entry['middle_name'],
-            entry['position_title'],
-            entry['rank'],
-            entry['department'],
-            entry['last_day'],
-            processed_dt  # <-- write as ISO string
-        ]
-        worksheet.write_row(i, 0, details)
-        i += 1
-
-    worksheet.autofit()
-    workbook.close()
 
 async def verify_token(token: str):
     secret_key = os.getenv("JWT_SECRET_KEY")
