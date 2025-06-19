@@ -125,6 +125,13 @@
         if (onstatustoggle) {
             onstatustoggle({ detail: { employee, action } });
         }
+         setTimeout(() => {
+            if (currentStatus) {
+                toast.success('Marked as unprocessed');
+            } else {
+                toast.success('Marked as processed');
+            }
+        }, 300);
     }
 
     // Handle escape key to cancel editing
