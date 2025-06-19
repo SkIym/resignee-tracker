@@ -94,7 +94,7 @@
             if (idx !== -1) {
                 employees[idx].last_day = parsedDate.toISOString();
                 employees = [...employees];
-                toast.success('Changes saved')
+                toast.success('Changes saved for employee no. ' + employee.employee_no);
             }
 
         } catch (error) {
@@ -114,9 +114,16 @@
 
     function toggleStatus(employee: Employee) {
         const currentStatus = employee.processed_date_time ? 'processed' : 'unprocessed';
-        // Call the callback function passed from parent
+        const action = currentStatus === 'processed' ? 'unprocess' : 'process';
+        
+        if (action === 'process') {
+            toast.success('Employee no. ' + employee.employee_no + ' marked as processed');
+        } else {
+            toast.success('Employee no. ' + employee.employee_no + ' marked as unprocessed');
+        }
+        
         if (onstatustoggle) {
-            onstatustoggle({ detail: { employee } });
+            onstatustoggle({ detail: { employee, action } });
         }
     }
 
