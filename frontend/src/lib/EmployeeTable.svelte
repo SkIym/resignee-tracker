@@ -94,7 +94,7 @@
             if (idx !== -1) {
                 employees[idx].last_day = parsedDate.toISOString();
                 employees = [...employees];
-                toast.success('Changes saved')
+                toast.success('Changes Saved')
             }
 
         } catch (error) {
