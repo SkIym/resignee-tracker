@@ -5,6 +5,7 @@
     export let onstatustoggle: (event: { detail: { employee: Employee, action?: string } }) => void;
 
     import type { Employee } from '../types';
+    import toast, { Toaster } from 'svelte-5-french-toast';
 
     let sortField: keyof Employee | '' = '';
     let sortDirection = 'asc';
@@ -95,6 +96,7 @@
             if (idx !== -1) {
                 employees[idx].last_day = parsedDate.toISOString();
                 employees = [...employees];
+                toast.success('Changes saved for employee no. ' + employee.employee_no);
             }
 
         } catch (error) {
@@ -107,9 +109,6 @@
         }
     }
 
-
-
-
     function cancelEdit() {
         editingEmployeeId = null;
         editingValue = '';
@@ -117,10 +116,18 @@
 
     function toggleStatus(employee: Employee) {
         const currentStatus = employee.processed_date_time ? 'processed' : 'unprocessed';
-        // Call the callback function passed from parent
+        const action = currentStatus === 'processed' ? 'unprocess' : 'process';
+        
         if (onstatustoggle) {
-            onstatustoggle({ detail: { employee } });
+            onstatustoggle({ detail: { employee, action } });
         }
+         setTimeout(() => {
+            if (action === 'process') {
+                toast.success('Employee no. ' + employee.employee_no + ' marked as processed');
+            } else {
+                toast.success('Employee no. ' + employee.employee_no + ' marked as unprocessed');
+            }
+        }, 300);
     }
 
     // Handle escape key to cancel editing
@@ -130,6 +137,8 @@
         }
     } 
 </script>
+
+<Toaster />
 
 <svelte:window on:keydown={handleKeydown} />
 
@@ -293,7 +302,11 @@
                                 type="date"
                                 bind:value={editingValue}
                                 class="text-sm border border-gray-300 rounded px-2 py-1 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                                on:blur={() => saveEdit(employee)}
+                                on:keydown={(e) => {
+                                    if (e.key === 'Enter') {
+                                        saveEdit(employee);
+                                    }
+                                }}
                             />
                             <button
                                 type="button"

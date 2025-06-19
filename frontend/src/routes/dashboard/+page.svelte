@@ -2,6 +2,7 @@
   import { onMount } from 'svelte';
   import { goto } from '$app/navigation'; 
   import { BASE_URL } from '../../constants';
+  import toast, { Toaster } from 'svelte-5-french-toast';
 
   import EmployeeTable from '$lib/EmployeeTable.svelte';
   import SearchBar from '$lib/SearchBar.svelte';
@@ -21,19 +22,19 @@
   let message = '';
   let response = '';
 
-  onMount(async () => {
-  const res = await fetch(`${BASE_URL}/check-auth`, {
-    method: 'GET',
-    credentials: 'include'
+  onMount(async () => { 
+    const res = await fetch(`$${BASE_URL}/check-auth`, {
+      method: 'GET',
+      credentials: 'include'
+    });
+
+    if (!res.ok) {
+      console.log("Unauthorized. Redirecting to login.");
+      goto('/'); 
+    }
+    await loadEmployees();
+
   });
-
-  if (!res.ok) {
-    console.log("Unauthorized. Redirecting to login.");
-    goto('/'); 
-  }
-  await loadEmployees();
-
-});
 
   async function loadEmployees() {
     try {
@@ -155,7 +156,6 @@
           'Content-Type': 'text/plain'
         },
         body: message,
-
         credentials: 'include'
       });
 
@@ -163,9 +163,17 @@
         const errorText = await res.text();
         throw new Error(`HTTP error! status: ${res.status} - ${errorText}`);
       }
-
+      
+      const newEmployees: Employee[] = await res.json();
       await loadEmployees();
       
+      const formatted = newEmployees
+        .map(e => `• ${e.employee_no} - ${e.name}`)
+        .join('\n');
+
+      toast.success(`Added ${newEmployees.length} Entr${newEmployees.length === 1 ? 'y' : 'ies'}:\n${formatted}`, {
+        duration: 3000
+      });
       message = '';
       
     } catch (error) {
