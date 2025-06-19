@@ -69,43 +69,36 @@
 
     async function saveEdit(employee: Employee) {
         try {
-            const isoLastDay = new Date(editingValue).toISOString();
-
-            const res = await fetch(`/api/resignees/${employee.employee_no}/last_day/edit`, {
-                credentials: 'include' 
-            });
-
-            const response = await fetch(`/api/resignees/${employee.employee_no}/last_day/edit`, {
+            const res = await fetch(`https://localhost:8000/resignees/${employee.employee_no}/last_day/edit`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'text/plain',
                 },
-                body: editingValue || '',
-                credentials: 'include'
+                body: editingValue,
+                credentials: 'include',
             });
 
-            console.log(editingValue);
-
-            if (!response.ok) {
-                const errorData = await response.json();
-                // throw new Error(errorData.detail || 'Failed to update last day');
+            if (!res.ok) {
+                const text = await res.text();
+                throw new Error(`Error ${res.status}: ${text}`);
             }
 
-            const employeeIndex = employees.findIndex(emp => emp.employee_no === employee.employee_no);
-            if (employeeIndex !== -1) {
-                employees[employeeIndex].last_day = editingValue || '';
-                employees = [...employees];
+            // Update local state
+            const idx = employees.findIndex(emp => emp.employee_no === employee.employee_no);
+            if (idx !== -1) {
+                employees[idx].last_day = editingValue;
+                employees = [...employees]; // triggers reactivity
             }
-            
+
         } catch (error) {
             console.error('Error updating last day:', error);
-            const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
-            alert(`Failed to update last day: ${errorMessage}`);
+            alert(`Failed to update last day: ${error instanceof Error ? error.message : String(error)}`);
         } finally {
             editingEmployeeId = null;
             editingValue = '';
         }
     }
+
 
     function cancelEdit() {
         editingEmployeeId = null;
