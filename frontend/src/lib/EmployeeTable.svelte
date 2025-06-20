@@ -50,7 +50,7 @@
 
     // Watch for employees changes to update scrollbar
     $: if (employees && tableContainer && stickyScrollbar) {
-        setTimeout(() => setupScrollbarSync(), 50);
+        setTimeout(async () => await setupScrollbarSync(), 50);
     }
 
     function formatDate(dateString: string | null | undefined) {
@@ -147,7 +147,7 @@
         }
     }
 
-    function setupScrollbarSync() {
+    async function setupScrollbarSync() {
         if (tableContainer && stickyScrollbar) {
             // Sync horizontal scroll between table and sticky scrollbar
             const handleTableScroll = () => {
