@@ -50,7 +50,7 @@ exe = EXE(
     a.zipfiles,
     a.datas,
     [],
-    name='resignee_tracker_2',
+    name='resignee_tracker',
     debug=False,
     bootloader_ignore_signals=False,
     strip=False,
