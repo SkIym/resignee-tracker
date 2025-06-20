@@ -179,11 +179,17 @@
         updateScrollbarWidth = () => {
             const table = scrollWrapper?.querySelector('table');
             if (table && scrollDiv) {
-            // Get the actual scroll width and clamp to container if needed
-            const tableWidth = table.scrollWidth;
-            const containerWidth = scrollWrapper.clientWidth;
+                // Get the actual scroll width and container width
+                const tableWidth = table.scrollWidth;
+                const containerWidth = scrollWrapper.clientWidth;
 
-            scrollDiv.style.width = Math.max(tableWidth, containerWidth) + 'px';
+                // Only show scrollbar content if table is wider than container
+                if (tableWidth > containerWidth) {
+                    scrollDiv.style.width = tableWidth + 'px';
+                } else {
+                    // If table fits within container, set scrollbar content to container width
+                    scrollDiv.style.width = containerWidth + 'px';
+                }
             }
         };
 
@@ -228,15 +234,10 @@
 <svelte:window on:keydown={handleKeydown} />
 
 <div class="relative">
-    <!-- Sticky Scrollbar -->
-    <div class="absolute bottom-0 left-0 right-0 bg-gray-50 border-t border-gray-300 h-5 z-10" bind:this={stickyScrollbar}>
-        <div class="h-5"></div>
-    </div>
-
     <!-- Main scrollable table container -->
     <div class="overflow-hidden" bind:this={tableContainer}>
         <div
-        class="overflow-x-auto overflow-y-visible hide-scrollbar pb-6"
+        class="overflow-x-auto overflow-y-visible hide-main-scrollbar"
             bind:this={scrollWrapper}
         >
             <table class="min-w-full text-sm text-left text-gray-700 bg-white">
@@ -469,15 +470,49 @@
                 {/if}
             </div>
         </div>
+    
+    <!-- Always Visible Sticky Scrollbar at Bottom -->
+    <div class="sticky-scrollbar-container bg-gray-50 border-t border-gray-300 h-5 z-10" bind:this={stickyScrollbar}>
+        <div class="h-5"></div>
+    </div>
 </div>
 
 <style>
-    /* Tailwind or global styles */
-    .hide-scrollbar::-webkit-scrollbar {
+    /* Hide the main table scrollbar but keep sticky scrollbar visible */
+    .hide-main-scrollbar::-webkit-scrollbar {
         display: none;
     }
-    .hide-scrollbar {
+    .hide-main-scrollbar {
         -ms-overflow-style: none;
         scrollbar-width: none;
+    }
+
+    /* Always visible sticky scrollbar */
+    .sticky-scrollbar-container {
+        position: sticky;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        overflow-x: auto;
+        overflow-y: hidden;
+    }
+
+    /* Show scrollbar for sticky container */
+    .sticky-scrollbar-container::-webkit-scrollbar {
+        height: 8px;
+    }
+
+    .sticky-scrollbar-container::-webkit-scrollbar-track {
+        background: #f1f1f1;
+        border-radius: 4px;
+    }
+
+    .sticky-scrollbar-container::-webkit-scrollbar-thumb {
+        background: #c1c1c1;
+        border-radius: 4px;
+    }
+
+    .sticky-scrollbar-container::-webkit-scrollbar-thumb:hover {
+        background: #a8a8a8;
     }
 </style>
