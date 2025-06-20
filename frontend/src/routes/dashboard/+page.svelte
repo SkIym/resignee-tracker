@@ -156,6 +156,7 @@
           'Content-Type': 'text/plain'
         },
         body: message,
+
         credentials: 'include'
       });
 
@@ -163,17 +164,9 @@
         const errorText = await res.text();
         throw new Error(`HTTP error! status: ${res.status} - ${errorText}`);
       }
-      
-      const newEmployees: Employee[] = await res.json();
+
       await loadEmployees();
       
-      const formatted = newEmployees
-        .map(e => `• ${e.employee_no} - ${e.name}`)
-        .join('\n');
-
-      toast.success(`Added ${newEmployees.length} Entr${newEmployees.length === 1 ? 'y' : 'ies'}:\n${formatted}`, {
-        duration: 3000
-      });
       message = '';
       
     } catch (error) {
