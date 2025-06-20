@@ -10,7 +10,7 @@
 
 	onMount(async () => {
 		try {
-			const res = await fetch('https://localhost:8000/check-auth', {
+			const res = await fetch(`${BASE_URL}/check-auth`, {
 				method: 'GET',
 				credentials: 'include'
 			});
