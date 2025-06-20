@@ -22,18 +22,24 @@
   let message = '';
   let response = '';
 
-  onMount(async () => { 
-    const res = await fetch(`$${BASE_URL}/check-auth`, {
-      method: 'GET',
-      credentials: 'include'
-    });
 
-    if (!res.ok) {
-      console.log("Unauthorized. Redirecting to login.");
-      goto('/'); 
+  onMount(async () => {
+    try {
+      const res = await fetch(`${BASE_URL}/check-auth`, {
+        method: 'GET',
+        credentials: 'include'
+      });
+
+      if (!res.ok) {
+        console.log("Unauthorized. Redirecting to login.");
+        goto('/');
+      } else {
+        await loadEmployees();
+      }
+    } catch (err) {
+      console.error("Fetch failed (likely CORS or server down). Redirecting to login.");
+      goto('/');
     }
-    await loadEmployees();
-
   });
 
   async function loadEmployees() {

@@ -1,10 +1,29 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
     import { BASE_URL } from '../constants';
+	import { onMount } from 'svelte';
+
 	let username = '';
 	let password = '';
 	let isLoading = false;
 	let errorMessage = '';
+
+	onMount(async () => {
+		try {
+			const res = await fetch('https://localhost:8000/check-auth', {
+				method: 'GET',
+				credentials: 'include'
+			});
+
+			if (res.ok) {
+				console.log("Already logged in. Redirecting to dashboard...");
+				goto('/dashboard');
+			}
+		} catch (err) {
+			console.warn("Auth check failed. Please Login.");
+		}
+	});
+
 
 	const handleSubmit = async (e: any) => {
 		e.preventDefault();
