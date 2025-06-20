@@ -23,18 +23,23 @@
 
   const BASE_URL = 'https://localhost:8000';
 
-  onMount(async () => { 
-    const res = await fetch('https://localhost:8000/check-auth', {
-      method: 'GET',
-      credentials: 'include'
-    });
+  onMount(async () => {
+    try {
+      const res = await fetch('https://localhost:8000/check-auth', {
+        method: 'GET',
+        credentials: 'include'
+      });
 
-    if (!res.ok) {
-      console.log("Unauthorized. Redirecting to login.");
-      goto('/'); 
+      if (!res.ok) {
+        console.log("Unauthorized. Redirecting to login.");
+        goto('/');
+      } else {
+        await loadEmployees();
+      }
+    } catch (err) {
+      console.error("Fetch failed (likely CORS or server down). Redirecting to login.");
+      goto('/');
     }
-    await loadEmployees();
-
   });
 
   async function loadEmployees() {
