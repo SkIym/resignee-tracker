@@ -242,6 +242,7 @@
   <div class="max-w-7xl mx-auto">
     <!-- Header Controls -->
     <div class="flex flex-wrap items-center justify-between gap-4 mb-6">
+      <img src="/assets/aub-logo-2.png" width="45"/>
       <div class="flex items-center gap-4 flex-1">
         <SearchBar onsearch={handleSearch} />
       </div>
