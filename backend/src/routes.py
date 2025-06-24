@@ -91,7 +91,7 @@ async def get_all_unprocessed_resignees():
     try:
         response = supabase.table("ResignedEmployees") \
             .select("*") \
-            .or_("um_date_deac.is_.null, tp_date_deac.is_.null, email_date_deac.is_.null, windows_date_deac.is_.null") \
+            .or_("um_date_deac.is.null, tp_date_deac.is.null, email_date_deac.is.null, windows_date_deac.is.null") \
             .execute()
         
         to_display = response.data
