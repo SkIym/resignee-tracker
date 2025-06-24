@@ -243,7 +243,7 @@ async def edit_windows_deactivation_date(
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.put("/{employee_no}/date_hr_emailed")
-async def edit_um_deactivation_date(
+async def edit_hr_emailed_date(
     employee_no: str = Path(...),
     date_hr_emailed: str = Body(..., media_type="text/plain")
 ):

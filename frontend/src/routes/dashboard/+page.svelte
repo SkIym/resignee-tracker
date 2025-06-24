@@ -183,55 +183,6 @@
       }
     }
   }
-
-  // Function to handle status toggle from EmployeeTable
-  async function handleStatusToggle(event: { detail: { employee: Employee, action?: string } }) {
-    const { employee, action } = event.detail;
-    
-    try {
-      // Determine the endpoint based on the action
-      // If no action is provided (old format), determine based on current status
-      let endpoint;
-      let actionName;
-      
-      if (action) {
-        // New format with explicit action
-        endpoint = action;
-        actionName = action;
-      } else {
-        // Old format - determine action based on current status
-        if (employee.processed_date_time) {
-          endpoint = 'unprocess';
-          actionName = 'unprocess';
-        } else {
-          endpoint = 'process';
-          actionName = 'process';
-        }
-      }
-      
-      const res = await fetch(`${BASE_URL}/resignees/${employee.employee_no}/${endpoint}`, {
-        method: 'PUT',
-        credentials: 'include'
-      });
-
-      if (!res.ok) {
-        const errorText = await res.text();
-        throw new Error(`Failed to ${actionName} employee: ${res.status} - ${errorText}`);
-      }
-
-      // Reload employees to get updated data
-      await loadEmployees();
-      
-      // Show success message
-      const actionPastTense = actionName === 'process' ? 'processed' : 'unprocessed';
-      // response = `Successfully marked ${employee.name} as ${actionPastTense}`;
-      
-    } catch (error) {
-      const actionName = action || (employee.processed_date_time ? 'unprocess' : 'process');
-      const errorMessage = error instanceof Error ? error.message : String(error);
-      response = `Error ${actionName}ing employee: ${errorMessage}`;
-    }
-  }
 </script>
 
 <svelte:head>
@@ -242,7 +193,7 @@
   <div class="max-w-7xl mx-auto">
     <!-- Header Controls -->
     <div class="flex flex-wrap items-center justify-between gap-4 mb-6">
-      <img src="/assets/aub-logo-2.png" width="45"/>
+      <img src="/assets/aub-logo-2.png" alt="AUB logo" width="45"/>
       <div class="flex items-center gap-4 flex-1">
         <SearchBar onsearch={handleSearch} />
       </div>
@@ -267,7 +218,7 @@
         </div>
       {:else}
         <div class="overflow-auto max-h-[500px]">
-          <EmployeeTable employees={filteredEmployees} onstatustoggle={handleStatusToggle} />
+          <EmployeeTable employees={filteredEmployees} />
         </div>
       {/if}
     </div>

@@ -5,7 +5,7 @@
     try {
       const res = await fetch('https://localhost:8000/logout', {
         method: 'POST',
-        credentials: 'include', // <-- Required to send and delete HttpOnly cookies
+        credentials: 'include', 
       });
 
       if (!res.ok) {
