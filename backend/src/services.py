@@ -63,22 +63,22 @@ def generate_xls_report(file: BytesIO, data: Sequence[Mapping[str, Any]]) -> Non
     i = 1
 
     for entry in data:
-        details: list[Any] = [entry['employee_no'],
-        entry['date_hired'],
-        entry['cost_center'],
-        entry['last_name'],
-        entry['first_name'], 
-        entry['middle_name'],
-        entry['position_title'],
-        entry['rank'],
-        entry['department'],
-        entry['last_day'],
-        entry['date_hr_emailed'],
-        entry['um_date_deac'],
-        entry['tp_date_deac'],
-        entry['email_date_deac'],
-        entry['windows_date_deac'],
-        entry['remarks']]
+        details: list[Any] = [entry['Employee no.'],
+        entry['Date hired'],
+        entry['Cost center'],
+        entry['Last Name'],
+        entry['First Name'], 
+        entry['Middle Name'],
+        entry['Position Title'],
+        entry['Rank'],
+        entry['Department'],
+        entry['Last day with AUB'],
+        entry['Date HR Emailed'],
+        entry['Batch Deactivation from UM'],
+        entry['3rd party systems/apps'],
+        entry['E-mails'],
+        entry['Windows'],
+        entry['Remarks']]
         worksheet.write_row(i, 0, details)
         i += 1
 
@@ -98,7 +98,7 @@ async def verify_token(token: str):
     except jwt.PyJWTError as e:
         return None
 
-def is_no_existing_account(date: str | None) -> bool:
-    if date is None: return False
-    
-    return date < '2020-01-01'
+def decode_deactivation_date(date: str | None) -> str | None:
+    if date is None: return ""
+    if date < '2020-01-01': return "No Existing Account"
+    return date

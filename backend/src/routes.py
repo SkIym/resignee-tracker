@@ -4,7 +4,7 @@ load_dotenv()
 # list endpoints here
 from fastapi import APIRouter, HTTPException, Body, Path, Query
 from schemas import ResigneeDisplay, ResigneeCreate
-from services import parse_resignee_text, generate_csv_report, generate_xls_report, is_no_existing_account
+from services import parse_resignee_text, generate_csv_report, generate_xls_report, decode_deactivation_date
 from datetime import datetime
 from supabase_client import supabase
 from io import StringIO, BytesIO
@@ -270,7 +270,7 @@ async def edit_windows_deactivation_date(
     try:
         employee_no_hash = hash_employee_no(employee_no)
         response = supabase.table("ResignedEmployees") \
-            .update({"remarks": remarks}) \
+            .update({"remarks": encrypt_field(remarks)}) \
             .eq("employee_no_hash", employee_no_hash) \
             .execute()
         
@@ -304,6 +304,8 @@ async def get_report(start_date: str, end_date: str, format: str = Query(default
             # Decrypt fields for the report if needed
             decrypted_data = []
             for entry in response.data:
+                print(entry.keys())
+                
                 decrypted_data.append({
                     "Employee no.": decrypt_field(entry['employee_no']),
                     "Last Name": decrypt_field(entry['last_name']),
@@ -316,11 +318,11 @@ async def get_report(start_date: str, end_date: str, format: str = Query(default
                     "Date hired": entry['date_hired'],
                     "Last day with AUB": entry['last_day'],
                     "Date HR Emailed": entry['date_hr_emailed'],
-                    "Batch Deactivation from UM": "No Existing Account" if is_no_existing_account(entry['um_date_deac']) else entry['um_date_deac'],
-                    "3rd party systems/apps": "No Existing Account" if is_no_existing_account(entry['tp_date_deac']) else entry['tp_date_deac'],
-                    "E-mails": "No Existing Account" if is_no_existing_account(entry['email_date_deac']) else entry['email_date_deac'],
-                    "Windows": "No Existing Account" if is_no_existing_account(entry['windows_date_deac']) else entry['windows_date_deac'],
-                    "Remarks": decrypt_field(entry['remarks'])
+                    "Batch Deactivation from UM": decode_deactivation_date(entry['um_date_deac']),
+                    "3rd party systems/apps": decode_deactivation_date(entry['tp_date_deac']),
+                    "E-mails": decode_deactivation_date(entry['email_date_deac']),
+                    "Windows": decode_deactivation_date(entry['windows_date_deac']),
+                    "Remarks": (decrypt_field(entry['remarks']) if entry['remarks'] else "")
                 })
 
             if format == "csv":
@@ -345,7 +347,7 @@ async def get_report(start_date: str, end_date: str, format: str = Query(default
             raise HTTPException(status_code=404, detail="There were no resignees processed within the given period")
     
     except Exception as e:
-        raise HTTPException(status_code=400, detail=str(e))
+        raise HTTPException(status_code=500, detail=str(e))
     
 # Endpoint to mark resignation entry as processed (will now not be returned to client )
 # @router.put("/{employee_no}/process")
