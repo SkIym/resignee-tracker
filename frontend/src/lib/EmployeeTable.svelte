@@ -8,7 +8,7 @@
 
     let sortField: keyof Employee | '' = '';
     let sortDirection = 'asc';
-    let editingEmployeeId: string | null = null;
+    let editingEmployeeId: {id: string; key: keyof Employee }| null = null;
     let editingValue: string = '';
 
     // Sticky scrollbar elements
@@ -75,12 +75,14 @@
         return `${year}-${month}-${day}`;
     }
 
-    function startEditing(employee: Employee) {
-        editingEmployeeId = employee.employee_no;
-        editingValue = formatDateForInput(employee.last_day);
+    function startEditing(employee: Employee, key: keyof Employee) {
+        editingEmployeeId = { id: employee.employee_no, key };
+        editingValue = formatDateForInput(employee[key] as string | null | undefined);
     }
 
     async function saveEdit(employee: Employee) {
+         if (!editingEmployeeId) return;
+        const { key } = editingEmployeeId;
         try {
             const trimmed = editingValue.trim();
             const parsedDate = new Date(trimmed);
@@ -484,7 +486,7 @@
                             <!-- Editable Last Day Cell -->
                             <td class="pl-6 py-2 whitespace-nowrap text-sm text-gray-900">
                                 <div class="flex items-center gap-2">
-                                    {#if editingEmployeeId === employee.employee_no}
+                                    {#if editingEmployeeId?.id === employee.employee_no && editingEmployeeId?.key === 'last_day'}
                                         <!-- Edit Mode: Date Input + Check Icon -->
                                         <input
                                             type="date"
@@ -514,7 +516,7 @@
                                         </span>
                                         <button
                                             type="button"
-                                            on:click={() => startEditing(employee)}
+                                            on:click={() => startEditing(employee, 'last_day')}
                                             class="text-gray-400 hover:text-gray-600 transition-colors"
                                             title="Edit last day"
                                         >
@@ -530,7 +532,7 @@
                             <!-- Editable Batch Deactivation Cell -->
                             <td class="pl-6 py-2 whitespace-nowrap text-sm text-gray-900">
                                 <div class="flex items-center gap-2">
-                                    {#if editingEmployeeId === employee.employee_no}
+                                    {#if editingEmployeeId?.id === employee.employee_no && editingEmployeeId?.key === 'um'}
                                         <!-- Edit Mode: Date Input + Check Icon -->
                                         <input
                                             type="date"
@@ -560,7 +562,7 @@
                                         </span>
                                         <button
                                             type="button"
-                                            on:click={() => startEditing(employee)}
+                                            on:click={() => startEditing(employee, 'um')}
                                             class="text-gray-400 hover:text-gray-600 transition-colors"
                                             title="Edit last day"
                                         >
@@ -576,7 +578,7 @@
                             <!-- Editable 3rd Party Systems Cell -->
                             <td class="pl-6 py-2 whitespace-nowrap text-sm text-gray-900">
                                 <div class="flex items-center gap-2">
-                                    {#if editingEmployeeId === employee.employee_no}
+                                    {#if editingEmployeeId?.id === employee.employee_no && editingEmployeeId?.key === 'third_party'}
                                         <!-- Edit Mode: Date Input + Check Icon -->
                                         <input
                                             type="date"
@@ -606,7 +608,7 @@
                                         </span>
                                         <button
                                             type="button"
-                                            on:click={() => startEditing(employee)}
+                                            on:click={() => startEditing(employee, 'third_party')}
                                             class="text-gray-400 hover:text-gray-600 transition-colors"
                                             title="Edit last day"
                                         >
@@ -622,7 +624,8 @@
                             <!-- Editable Emails Cell -->
                             <td class="pl-6 py-2 whitespace-nowrap text-sm text-gray-900">
                                 <div class="flex items-center gap-2">
-                                    {#if editingEmployeeId === employee.employee_no}
+                                    {#if editingEmployeeId?.id === employee.employee_no && editingEmployeeId?.key === 'email'}
+
                                         <!-- Edit Mode: Date Input + Check Icon -->
                                         <input
                                             type="date"
@@ -652,7 +655,7 @@
                                         </span>
                                         <button
                                             type="button"
-                                            on:click={() => startEditing(employee)}
+                                            on:click={() => startEditing(employee, 'email')}
                                             class="text-gray-400 hover:text-gray-600 transition-colors"
                                             title="Edit last day"
                                         >
@@ -668,7 +671,7 @@
                             <!-- Editable Windows Cell -->
                             <td class="pl-6 py-2 whitespace-nowrap text-sm text-gray-900">
                                 <div class="flex items-center gap-2">
-                                    {#if editingEmployeeId === employee.employee_no}
+                                     {#if editingEmployeeId?.id === employee.employee_no && editingEmployeeId?.key === 'windows'}
                                         <!-- Edit Mode: Date Input + Check Icon -->
                                         <input
                                             type="date"
@@ -698,7 +701,7 @@
                                         </span>
                                         <button
                                             type="button"
-                                            on:click={() => startEditing(employee)}
+                                            on:click={() => startEditing(employee, 'windows')}
                                             class="text-gray-400 hover:text-gray-600 transition-colors"
                                             title="Edit last day"
                                         >
@@ -714,7 +717,7 @@
                             <!-- Editable HR Email Cell -->
                             <td class="pl-6 py-2 whitespace-nowrap text-sm text-gray-900">
                                 <div class="flex items-center gap-2">
-                                    {#if editingEmployeeId === employee.employee_no}
+                                    {#if editingEmployeeId?.id === employee.employee_no && editingEmployeeId?.key === 'hr_email_date'}
                                         <!-- Edit Mode: Date Input + Check Icon -->
                                         <input
                                             type="date"
@@ -753,7 +756,7 @@
 
                                         <button
                                             type="button"
-                                            on:click={() => startEditing(employee)}
+                                            on:click={() => startEditing(employee, 'hr_email_date')}
                                             class="text-gray-400 hover:text-gray-600 transition-colors"
                                             title="Edit last day"
                                         >
