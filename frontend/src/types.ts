@@ -13,4 +13,5 @@ export interface Employee {
   processed_date_time?: string | null;
   cost_center?: string;
   rank?: string;
+  remarks: string;
 }
