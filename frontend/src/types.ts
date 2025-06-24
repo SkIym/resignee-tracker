@@ -9,7 +9,7 @@ export interface Employee {
   third_party: string;
   email: string;
   windows: string;
-  hr_email_date: string;
+  date_hr_emailed: string;
   processed_date_time?: string | null;
   cost_center?: string;
   rank?: string;
