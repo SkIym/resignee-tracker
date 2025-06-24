@@ -10,10 +10,10 @@ class ResigneeDisplay(BaseModel):
     department: str 
     last_day: str
     date_hr_emailed: str
-    um_date_deac: str | None
-    tp_date_deac: str | None
-    email_date_deac: str | None
-    windows_date_deac: str | None
+    um: str | None
+    third_party: str | None
+    email: str | None
+    windows: str | None
     remarks: str | None
 
 class ResigneeCreate(BaseModel):

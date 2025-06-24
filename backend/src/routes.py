@@ -72,10 +72,10 @@ async def add_resignees(resignees: str = Body(..., media_type="text/plain")):
                 **entry.model_dump(exclude={'last_name', 'first_name', 'middle_name'}),
                 name=entry.last_name + ", " + entry.first_name + " " + entry.middle_name,
                 date_hr_emailed=datetime.now().strftime("%m-%d-%Y"),
-                um_date_deac=None,
-                tp_date_deac=None,
-                email_date_deac=None,
-                windows_date_deac=None,
+                um=None,
+                third_party=None,
+                email=None,
+                windows=None,
                 remarks=None
             ))
 
@@ -121,10 +121,10 @@ async def get_all_unprocessed_resignees():
                     department=department,
                     last_day=entry.get('last_day', ""),
                     date_hr_emailed=entry.get('date_hr_emailed', ""),
-                    um_date_deac=entry.get('um_date_deac', ""),
-                    tp_date_deac=entry.get('tp_date_deac', ""),
-                    email_date_deac=entry.get('email_date_deac', ""),
-                    windows_date_deac=entry.get('windows_date_deac', ""),
+                    um=entry.get('um_date_deac', ""),
+                    third_party=entry.get('tp_date_deac', ""),
+                    email=entry.get('email_date_deac', ""),
+                    windows=entry.get('windows_date_deac', ""),
                     remarks=remarks
                 ))
             except Exception as inner_e:
