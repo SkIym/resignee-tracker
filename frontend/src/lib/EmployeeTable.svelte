@@ -76,18 +76,34 @@
 
     function startEditing(employee: Employee, key: keyof Employee) {
         editingEmployeeId = { id: employee.employee_no, key };
-        editingValue = formatDateForInput(employee[key] as string | null | undefined);
+        
+        // Handle special "1900-01-01" date by clearing the input
+        if (isNoAccountDate(employee[key])) {
+            editingValue = '';
+        } else {
+            editingValue = formatDateForInput(employee[key] as string | null | undefined);
+        }
     }
 
     async function saveEdit(employee: Employee) {
-         if (!editingEmployeeId) return;
+        if (!editingEmployeeId) return;
         const { key } = editingEmployeeId;
         try {
             const trimmed = editingValue.trim();
-            const parsedDate = new Date(trimmed);
+            let body, successMessage;
 
-            if (!trimmed || isNaN(parsedDate.getTime())) {
-                throw new Error("Invalid date format");
+            // Handle special "NO_ACCOUNT" value with a special date
+            if (trimmed === 'NO_ACCOUNT') {
+                body = '1900-01-01'; // Special date that represents "no existing account"
+                successMessage = 'Marked as "No existing account" for employee no. ' + employee.employee_no;
+            } else {
+                // Validate date format for regular date entries
+                const parsedDate = new Date(trimmed);
+                if (!trimmed || isNaN(parsedDate.getTime())) {
+                    throw new Error("Invalid date format");
+                }
+                body = trimmed;
+                successMessage = 'Changes saved for employee no. ' + employee.employee_no;
             }
 
             const res = await fetch(`https://localhost:8000/resignees/${employee.employee_no}/last_day/edit`, {
@@ -95,7 +111,7 @@
                 headers: {
                     'Content-Type': 'text/plain',
                 },
-                body: trimmed,
+                body: body,
                 credentials: 'include',
             });
 
@@ -106,19 +122,29 @@
 
             const idx = employees.findIndex(emp => emp.employee_no === employee.employee_no);
             if (idx !== -1) {
-                employees[idx].last_day = parsedDate.toISOString();
+                if (trimmed === 'NO_ACCOUNT') {
+                    employees[idx][key] = '1900-01-01';
+                } else {
+                    employees[idx][key] = new Date(trimmed).toISOString();
+                }
                 employees = [...employees];
-                toast.success('Changes saved for employee no. ' + employee.employee_no);
+                toast.success(successMessage);
             }
 
         } catch (error) {
-            console.error('Error updating date:', error);
+            console.error('Error updating field:', error);
             const msg = error instanceof Error ? error.message : 'Unknown error';
-            alert(`Failed to update date: ${msg}`);
+            alert(`Failed to update field: ${msg}`);
         } finally {
             editingEmployeeId = null;
             editingValue = '';
         }
+    }
+
+    function isNoAccountDate(dateString: string | null | undefined) {
+        if (!dateString) return false;
+        const date = new Date(dateString);
+        return date.getFullYear() === 1900 && date.getMonth() === 0 && date.getDate() === 1;
     }
 
     function cancelEdit() {
@@ -559,38 +585,54 @@
                             <td class="pl-6 py-2 whitespace-nowrap text-sm text-gray-900">
                                 <div class="flex items-center gap-2">
                                     {#if editingEmployeeId?.id === employee.employee_no && editingEmployeeId?.key === 'um'}
-                                        <!-- Edit Mode: Date Input + Check Icon -->
-                                        <input
-                                            type="date"
-                                            bind:value={editingValue}
-                                            class="text-sm border border-gray-300 rounded px-2 py-1 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                                            on:keydown={(e) => {
-                                                if (e.key === 'Enter') {
+                                        <!-- Edit Mode: Date Input + No Account Button + Check Icon -->
+                                        <div class="flex flex-col gap-2">
+                                            <div class="flex items-center gap-2">
+                                                <input
+                                                    type="date"
+                                                    bind:value={editingValue}
+                                                    class="text-sm border border-gray-300 rounded px-2 py-1 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                                    on:keydown={(e) => {
+                                                        if (e.key === 'Enter') {
+                                                            saveEdit(employee);
+                                                        }
+                                                    }}
+                                                />
+                                                <button
+                                                    type="button"
+                                                    on:click={() => saveEdit(employee)}
+                                                    class="text-green-600 hover:text-green-800 transition-colors"
+                                                    title="Save changes"
+                                                >
+                                                    <!-- Check Icon -->
+                                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                                                    </svg>
+                                                </button>
+                                            </div>
+                                            <!-- No Existing Account Button -->
+                                            <button
+                                                type="button"
+                                                on:click={() => {
+                                                    editingValue = 'NO_ACCOUNT';
                                                     saveEdit(employee);
-                                                }
-                                            }}
-                                        />
-                                        <button
-                                            type="button"
-                                            on:click={() => saveEdit(employee)}
-                                            class="text-green-600 hover:text-green-800 transition-colors"
-                                            title="Save changes"
-                                        >
-                                            <!-- Check Icon -->
-                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
-                                            </svg>
-                                        </button>
+                                                }}
+                                                class="text-sm border border-gray-300 hover:bg-gray-300 text-gray-700 w-24 rounded px-2 py-1 transition-colors"
+                                                title="Mark as no existing account"
+                                            >
+                                                No account
+                                            </button>
+                                        </div>
                                     {:else}
                                         <!-- Display Mode: Date + Pencil Icon -->
-                                        <span class="inline-flex px-2 py-1 text-xs font-medium rounded-full {employee.um ? 'bg-[#CFEED8] text-[#1E9F37]}' : 'bg-[#FED9DA] text-[#D7313E]'}">
-                                            {employee.um ? formatDate(employee.um) : 'N/A'}
+                                        <span class="inline-flex px-2 py-1 text-xs font-medium rounded-full {isNoAccountDate(employee.um) ? 'bg-[#FFF3CD] text-[#856404]' : employee.um ? 'bg-[#CFEED8] text-[#1E9F37]' : 'bg-[#FED9DA] text-[#D7313E]'}">
+                                            {isNoAccountDate(employee.um) ? 'No account' : employee.um ? formatDate(employee.um) : 'N/A'}
                                         </span>
                                         <button
                                             type="button"
                                             on:click={() => startEditing(employee, 'um')}
                                             class="text-gray-400 hover:text-gray-600 transition-colors"
-                                            title="Edit batch deactivtion date"
+                                            title="Edit batch deactivation date"
                                         >
                                             <!-- Pencil/Edit Icon -->
                                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -605,38 +647,54 @@
                             <td class="pl-6 py-2 whitespace-nowrap text-sm text-gray-900">
                                 <div class="flex items-center gap-2">
                                     {#if editingEmployeeId?.id === employee.employee_no && editingEmployeeId?.key === 'third_party'}
-                                        <!-- Edit Mode: Date Input + Check Icon -->
-                                        <input
-                                            type="date"
-                                            bind:value={editingValue}
-                                            class="text-sm border border-gray-300 rounded px-2 py-1 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                                            on:keydown={(e) => {
-                                                if (e.key === 'Enter') {
+                                        <!-- Edit Mode: Date Input + No Account Button + Check Icon -->
+                                        <div class="flex flex-col gap-2">
+                                            <div class="flex items-center gap-2">
+                                                <input
+                                                    type="date"
+                                                    bind:value={editingValue}
+                                                    class="text-sm border border-gray-300 rounded px-2 py-1 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                                    on:keydown={(e) => {
+                                                        if (e.key === 'Enter') {
+                                                            saveEdit(employee);
+                                                        }
+                                                    }}
+                                                />
+                                                <button
+                                                    type="button"
+                                                    on:click={() => saveEdit(employee)}
+                                                    class="text-green-600 hover:text-green-800 transition-colors"
+                                                    title="Save changes"
+                                                >
+                                                    <!-- Check Icon -->
+                                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                                                    </svg>
+                                                </button>
+                                            </div>
+                                            <!-- No Existing Account Button -->
+                                            <button
+                                                type="button"
+                                                on:click={() => {
+                                                    editingValue = 'NO_ACCOUNT';
                                                     saveEdit(employee);
-                                                }
-                                            }}
-                                        />
-                                        <button
-                                            type="button"
-                                            on:click={() => saveEdit(employee)}
-                                            class="text-green-600 hover:text-green-800 transition-colors"
-                                            title="Save changes"
-                                        >
-                                            <!-- Check Icon -->
-                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
-                                            </svg>
-                                        </button>
+                                                }}
+                                                class="text-sm border border-gray-300 hover:bg-gray-300 text-gray-700 w-24 rounded px-2 py-1 transition-colors"
+                                                title="Mark as no existing account"
+                                            >
+                                                No account
+                                            </button>
+                                        </div>
                                     {:else}
                                         <!-- Display Mode: Date + Pencil Icon -->
-                                        <span class="inline-flex px-2 py-1 text-xs font-medium rounded-full {employee.um ? 'bg-[#CFEED8] text-[#1E9F37]}' : 'bg-[#FED9DA] text-[#D7313E]'}">
-                                            {formatDate(employee.third_party)}
+                                        <span class="inline-flex px-2 py-1 text-xs font-medium rounded-full {isNoAccountDate(employee.third_party) ? 'bg-[#FFF3CD] text-[#856404]' : employee.third_party ? 'bg-[#CFEED8] text-[#1E9F37]' : 'bg-[#FED9DA] text-[#D7313E]'}">
+                                            {isNoAccountDate(employee.third_party) ? 'No account' : employee.third_party ? formatDate(employee.third_party) : 'N/A'}
                                         </span>
                                         <button
                                             type="button"
                                             on:click={() => startEditing(employee, 'third_party')}
                                             class="text-gray-400 hover:text-gray-600 transition-colors"
-                                            title="Edit date for 3rd party"
+                                            title="Edit batch deactivation date"
                                         >
                                             <!-- Pencil/Edit Icon -->
                                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -651,39 +709,54 @@
                             <td class="pl-6 py-2 whitespace-nowrap text-sm text-gray-900">
                                 <div class="flex items-center gap-2">
                                     {#if editingEmployeeId?.id === employee.employee_no && editingEmployeeId?.key === 'email'}
-
-                                        <!-- Edit Mode: Date Input + Check Icon -->
-                                        <input
-                                            type="date"
-                                            bind:value={editingValue}
-                                            class="text-sm border border-gray-300 rounded px-2 py-1 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                                            on:keydown={(e) => {
-                                                if (e.key === 'Enter') {
+                                        <!-- Edit Mode: Date Input + No Account Button + Check Icon -->
+                                        <div class="flex flex-col gap-2">
+                                            <div class="flex items-center gap-2">
+                                                <input
+                                                    type="date"
+                                                    bind:value={editingValue}
+                                                    class="text-sm border border-gray-300 rounded px-2 py-1 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                                    on:keydown={(e) => {
+                                                        if (e.key === 'Enter') {
+                                                            saveEdit(employee);
+                                                        }
+                                                    }}
+                                                />
+                                                <button
+                                                    type="button"
+                                                    on:click={() => saveEdit(employee)}
+                                                    class="text-green-600 hover:text-green-800 transition-colors"
+                                                    title="Save changes"
+                                                >
+                                                    <!-- Check Icon -->
+                                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                                                    </svg>
+                                                </button>
+                                            </div>
+                                            <!-- No Existing Account Button -->
+                                            <button
+                                                type="button"
+                                                on:click={() => {
+                                                    editingValue = 'NO_ACCOUNT';
                                                     saveEdit(employee);
-                                                }
-                                            }}
-                                        />
-                                        <button
-                                            type="button"
-                                            on:click={() => saveEdit(employee)}
-                                            class="text-green-600 hover:text-green-800 transition-colors"
-                                            title="Save changes"
-                                        >
-                                            <!-- Check Icon -->
-                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
-                                            </svg>
-                                        </button>
+                                                }}
+                                                class="text-sm border border-gray-300 hover:bg-gray-300 text-gray-700 w-24 rounded px-2 py-1 transition-colors"
+                                                title="Mark as no existing account"
+                                            >
+                                                No account
+                                            </button>
+                                        </div>
                                     {:else}
                                         <!-- Display Mode: Date + Pencil Icon -->
-                                        <span class="inline-flex px-2 py-1 text-xs font-medium rounded-full {employee.um ? 'bg-[#CFEED8] text-[#1E9F37]}' : 'bg-[#FED9DA] text-[#D7313E]'}">
-                                            {formatDate(employee.email)}
+                                        <span class="inline-flex px-2 py-1 text-xs font-medium rounded-full {isNoAccountDate(employee.email) ? 'bg-[#FFF3CD] text-[#856404]' : employee.email ? 'bg-[#CFEED8] text-[#1E9F37]' : 'bg-[#FED9DA] text-[#D7313E]'}">
+                                            {isNoAccountDate(employee.email) ? 'No account' : employee.email ? formatDate(employee.email) : 'N/A'}
                                         </span>
                                         <button
                                             type="button"
                                             on:click={() => startEditing(employee, 'email')}
                                             class="text-gray-400 hover:text-gray-600 transition-colors"
-                                            title="Edit date for emails"
+                                            title="Edit batch deactivation date"
                                         >
                                             <!-- Pencil/Edit Icon -->
                                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -697,39 +770,55 @@
                             <!-- Editable Windows Cell -->
                             <td class="pl-6 py-2 whitespace-nowrap text-sm text-gray-900">
                                 <div class="flex items-center gap-2">
-                                     {#if editingEmployeeId?.id === employee.employee_no && editingEmployeeId?.key === 'windows'}
-                                        <!-- Edit Mode: Date Input + Check Icon -->
-                                        <input
-                                            type="date"
-                                            bind:value={editingValue}
-                                            class="text-sm border border-gray-300 rounded px-2 py-1 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                                            on:keydown={(e) => {
-                                                if (e.key === 'Enter') {
+                                    {#if editingEmployeeId?.id === employee.employee_no && editingEmployeeId?.key === 'windows'}
+                                        <!-- Edit Mode: Date Input + No Account Button + Check Icon -->
+                                        <div class="flex flex-col gap-2">
+                                            <div class="flex items-center gap-2">
+                                                <input
+                                                    type="date"
+                                                    bind:value={editingValue}
+                                                    class="text-sm border border-gray-300 rounded px-2 py-1 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                                    on:keydown={(e) => {
+                                                        if (e.key === 'Enter') {
+                                                            saveEdit(employee);
+                                                        }
+                                                    }}
+                                                />
+                                                <button
+                                                    type="button"
+                                                    on:click={() => saveEdit(employee)}
+                                                    class="text-green-600 hover:text-green-800 transition-colors"
+                                                    title="Save changes"
+                                                >
+                                                    <!-- Check Icon -->
+                                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                                                    </svg>
+                                                </button>
+                                            </div>
+                                            <!-- No Existing Account Button -->
+                                            <button
+                                                type="button"
+                                                on:click={() => {
+                                                    editingValue = 'NO_ACCOUNT';
                                                     saveEdit(employee);
-                                                }
-                                            }}
-                                        />
-                                        <button
-                                            type="button"
-                                            on:click={() => saveEdit(employee)}
-                                            class="text-green-600 hover:text-green-800 transition-colors"
-                                            title="Save changes"
-                                        >
-                                            <!-- Check Icon -->
-                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
-                                            </svg>
-                                        </button>
+                                                }}
+                                                class="text-sm border border-gray-300 hover:bg-gray-300 text-gray-700 w-24 rounded px-2 py-1 transition-colors"
+                                                title="Mark as no existing account"
+                                            >
+                                                No account
+                                            </button>
+                                        </div>
                                     {:else}
                                         <!-- Display Mode: Date + Pencil Icon -->
-                                        <span class="inline-flex px-2 py-1 text-xs font-medium rounded-full {employee.um ? 'bg-[#CFEED8] text-[#1E9F37]}' : 'bg-[#FED9DA] text-[#D7313E]'}">
-                                            {formatDate(employee.windows)}
+                                        <span class="inline-flex px-2 py-1 text-xs font-medium rounded-full {isNoAccountDate(employee.windows) ? 'bg-[#FFF3CD] text-[#856404]' : employee.windows ? 'bg-[#CFEED8] text-[#1E9F37]' : 'bg-[#FED9DA] text-[#D7313E]'}">
+                                            {isNoAccountDate(employee.windows) ? 'No account' : employee.windows ? formatDate(employee.windows) : 'N/A'}
                                         </span>
                                         <button
                                             type="button"
                                             on:click={() => startEditing(employee, 'windows')}
                                             class="text-gray-400 hover:text-gray-600 transition-colors"
-                                            title="Edit date for Windows"
+                                            title="Edit batch deactivation date"
                                         >
                                             <!-- Pencil/Edit Icon -->
                                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -772,14 +861,6 @@
                                             {formatDate(employee.hr_email_date)}
                                         </span>
 
-                                        <!--
-                                        <span
-                                            class="inline-flex px-2 py-1 text-xs font-medium rounded-full {employee.processed_date_time ? 'bg-[#CFEED8] text-[#1E9F37]' : 'bg-[#FED9DA] text-[#D7313E]'}"
-                                        >
-                                            {employee.processed_date_time ? 'Processed' : 'Unprocessed'}
-                                        </span>
-                                        -->
-
                                         <button
                                             type="button"
                                             on:click={() => startEditing(employee, 'hr_email_date')}
@@ -798,7 +879,7 @@
                             <!-- Remarks Field -->
                             <td class="px-6 py-2 whitespace-normal text-sm text-gray-900">
                                 <div class="flex items-center gap-2">
-                                    {#if editingEmployeeId?.id === employee.employee_no}
+                                    {#if editingEmployeeId?.id === employee.employee_no && editingEmployeeId?.key === 'remarks'}
                                         <!-- Edit Mode: Text Field + Check Icon -->
                                         <textarea
                                             bind:value={editingValue}
