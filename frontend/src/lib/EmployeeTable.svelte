@@ -90,11 +90,11 @@
         const { key } = editingEmployeeId;
         try {
             const trimmed = editingValue.trim();
-            let body, successMessage;
+            let body, successMessage, endpoint;
 
             // Handle special "NO_ACCOUNT" value with a special date
             if (trimmed === 'NO_ACCOUNT') {
-                body = '1900-01-01'; // Special date that represents "no existing account"
+                body = '1900-01-01';
                 successMessage = 'Marked as "No existing account" for employee no. ' + employee.employee_no;
             } else {
                 // Validate date format for regular date entries
@@ -106,7 +106,31 @@
                 successMessage = 'Changes saved for employee no. ' + employee.employee_no;
             }
 
-            const res = await fetch(`https://localhost:8000/resignees/${employee.employee_no}/last_day/edit`, {
+            // Set endpoint based on the field being edited
+            switch (key) {
+                case 'last_day':
+                    endpoint = `https://localhost:8000/resignees/${employee.employee_no}/last_day/edit`;
+                    break;
+                case 'um':
+                    endpoint = `https://localhost:8000/resignees/${employee.employee_no}/um/edit`;
+                    break;
+                case 'third_party':
+                    endpoint = `https://localhost:8000/resignees/${employee.employee_no}/third_party/edit`;
+                    break;
+                case 'email':
+                    endpoint = `https://localhost:8000/resignees/${employee.employee_no}/email/edit`;
+                    break;
+                case 'windows':
+                    endpoint = `https://localhost:8000/resignees/${employee.employee_no}/windows/edit`;
+                    break;
+                case 'hr_email_date':
+                    endpoint = `https://localhost:8000/resignees/${employee.employee_no}/hr_email_date/edit`;
+                    break;
+                default:
+                    throw new Error(`Unknown field: ${key}`);
+            }
+
+            const res = await fetch(endpoint, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'text/plain',
