@@ -1,6 +1,5 @@
 <script lang="ts">
     export let employees: Employee[] = [];
-    export let onstatustoggle: (event: { detail: { employee: Employee, action?: string } }) => void;
 
     import { onMount, onDestroy } from 'svelte';
     import type { Employee } from '../types';
@@ -127,20 +126,47 @@
         editingValue = '';
     }
 
-    function toggleStatus(employee: Employee) {
-        const currentStatus = employee.processed_date_time ? 'processed' : 'unprocessed';
-        const action = currentStatus === 'processed' ? 'unprocess' : 'process';
+    async function saveRemarks(employee: Employee) {
+        if (!editingEmployeeId) return;
         
-        if (onstatustoggle) {
-            onstatustoggle({ detail: { employee, action } });
-        }
-         setTimeout(() => {
-            if (action === 'process') {
-                toast.success('Employee no. ' + employee.employee_no + ' marked as processed');
-            } else {
-                toast.success('Employee no. ' + employee.employee_no + ' marked as unprocessed');
+        try {
+            const trimmedRemarks = editingValue.trim();
+
+            const res = await fetch(`https://localhost:8000/resignees/${employee.employee_no}/remarks`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ remarks: trimmedRemarks }),
+                credentials: 'include',
+            });
+
+            if (!res.ok) {
+                const text = await res.text();
+                throw new Error(`Error ${res.status}: ${text}`);
             }
-        }, 300);
+
+            // Update the local employee data
+            const idx = employees.findIndex(emp => emp.employee_no === employee.employee_no);
+            if (idx !== -1) {
+                employees[idx].remarks = trimmedRemarks;
+                employees = [...employees];
+                toast.success('Remarks updated for employee no. ' + employee.employee_no);
+            }
+
+        } catch (error) {
+            console.error('Error updating remarks:', error);
+            const msg = error instanceof Error ? error.message : 'Unknown error';
+            alert(`Failed to update remarks: ${msg}`);
+        } finally {
+            editingEmployeeId = null;
+            editingValue = '';
+        }
+    }
+
+    function startEditingRemarks(employee: Employee) {
+        editingEmployeeId = { id: employee.employee_no, key: 'remarks' };
+        editingValue = String(employee.remarks || '');
     }
 
     // Handle escape key to cancel editing
@@ -512,7 +538,7 @@
                                     {:else}
                                         <!-- Display Mode: Date + Pencil Icon -->
                                         <span class="flex-1">
-                                            {String(employee.employee_no || '')}
+                                            {formatDate(employee.last_day)}
                                         </span>
                                         <button
                                             type="button"
@@ -772,7 +798,7 @@
                             <!-- Remarks Field -->
                             <td class="px-6 py-2 whitespace-normal text-sm text-gray-900">
                                 <div class="flex items-center gap-2">
-                                    {#if editingEmployeeId === employee.employee_no}
+                                    {#if editingEmployeeId?.id === employee.employee_no}
                                         <!-- Edit Mode: Text Field + Check Icon -->
                                         <textarea
                                             bind:value={editingValue}
@@ -780,13 +806,13 @@
                                             class="text-sm border border-gray-300 rounded px-2 py-1 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 h-20 w-40"
                                             on:keydown={(e) => {
                                                 if (e.key === 'Enter') {
-                                                    saveEdit(employee);
+                                                    saveRemarks(employee);
                                                 }
                                             }}
                                         ></textarea>
                                         <button
                                             type="button"
-                                            on:click={() => saveEdit(employee)}
+                                            on:click={() => saveRemarks(employee)}
                                             class="text-green-600 hover:text-green-800 transition-colors"
                                             title="Save changes"
                                         >
@@ -801,17 +827,9 @@
                                             {String(employee.remarks || 'N/A')}
                                         </span>
 
-                                        <!--
-                                        <span
-                                            class="inline-flex px-2 py-1 text-xs font-medium rounded-full {employee.processed_date_time ? 'bg-[#CFEED8] text-[#1E9F37]' : 'bg-[#FED9DA] text-[#D7313E]'}"
-                                        >
-                                            {employee.processed_date_time ? 'Processed' : 'Unprocessed'}
-                                        </span>
-                                        -->
-
                                         <button
                                             type="button"
-                                            on:click={() => startEditing(employee)}
+                                            on:click={() => startEditingRemarks(employee)}
                                             class="text-gray-400 hover:text-gray-600 transition-colors"
                                             title="Edit last day"
                                         >
