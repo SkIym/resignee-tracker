@@ -2,11 +2,18 @@
 
 # Parsing function (from raw text from email to labeled data)
 from schemas import ResigneeCreate
-from io import StringIO
+from io import StringIO, BytesIO
 import csv
 from typing import Sequence, Mapping, Any
 import jwt
 import os
+import xlsxwriter
+from datetime import datetime
+
+headers = [
+    "Employee no.", "Date hired", "Cost center", "Last Name", "First Name", "Middle Name",
+    "Position Title", "Rank", "Department", "Last day with AUB", "Date HR Emailed", "Batch Deactivation from UM", "3rd party systems/apps", "E-mails", "Windows", "Remarks"
+]
 
 def parse_resignee_text(raw_text: str) -> list[ResigneeCreate]:
     """
@@ -39,17 +46,44 @@ def parse_resignee_text(raw_text: str) -> list[ResigneeCreate]:
             continue
     return employees
 
-def generate_report(buffer: StringIO, data: Sequence[Mapping[str, Any]]) -> None:
-
-    headers = [
-        "Employee no.", "Date hired", "Cost center", "Last Name", "First Name", "Middle Name",
-        "Position Title", "Rank", "Department", "Last day with AUB", "Date and Time processed"
-    ]
+def generate_csv_report(buffer: StringIO, data: Sequence[Mapping[str, Any]]) -> None:
 
     writer = csv.DictWriter(buffer, fieldnames=headers)
     writer.writeheader()
     writer.writerows(data)
 
+def generate_xls_report(file: BytesIO, data: Sequence[Mapping[str, Any]]) -> None:
+    workbook = xlsxwriter.Workbook(file)
+    worksheet = workbook.add_worksheet()
+
+    header_format = workbook.add_format({'bold': True})
+
+    worksheet.write_row(0, 0, headers, header_format)
+
+    i = 1
+
+    for entry in data:
+        details: list[Any] = [entry['employee_no'],
+        entry['date_hired'],
+        entry['cost_center'],
+        entry['last_name'],
+        entry['first_name'], 
+        entry['middle_name'],
+        entry['position_title'],
+        entry['rank'],
+        entry['department'],
+        entry['last_day'],
+        entry['date_hr_emailed'],
+        entry['um_date_deac'],
+        entry['tp_date_deac'],
+        entry['email_date_deac'],
+        entry['windows_date_deac'],
+        entry['remarks']]
+        worksheet.write_row(i, 0, details)
+        i += 1
+
+    worksheet.autofit()
+    workbook.close()
 
 async def verify_token(token: str):
     secret_key = os.getenv("JWT_SECRET_KEY")

@@ -4,10 +4,10 @@ load_dotenv()
 # list endpoints here
 from fastapi import APIRouter, HTTPException, Body, Path
 from schemas import ResigneeDisplay, ResigneeCreate
-from services import parse_resignee_text, generate_report
+from services import parse_resignee_text, generate_csv_report, generate_xls_report
 from datetime import datetime
 from supabase_client import supabase
-from io import StringIO
+from io import StringIO, BytesIO
 from fastapi.responses import Response
 from crypto_utils import encrypt_field, decrypt_field
 import hashlib
@@ -162,32 +162,28 @@ async def edit_employee_last_day(
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-@router.get("/report")
+@router.get("/report/csv")
 async def get_csv_report(start_date: str, end_date: str):
     """
     Generate an CSV report of processed resignees within a selected timeframe.
     """
     try:
-        end_datetime = datetime.fromisoformat(end_date)
+        # end_datetime = datetime.fromisoformat(end_date)
 
-        # Set the time to 23:59:59 of the same day
-        end_datetime = end_datetime.replace(hour=23, minute=59, second=59)
+        # # Set the time to 23:59:59 of the same day
+        # end_datetime = end_datetime.replace(hour=23, minute=59, second=59)
 
-        # Convert back to ISO format string if needed
-        end_date_with_time = end_datetime.isoformat()
+        # # Convert back to ISO format string if needed
+        # end_date_with_time = end_datetime.isoformat()
         
         response = supabase.table("ResignedEmployees") \
             .select("*") \
-            .lte("processed_date_time", end_date_with_time) \
-            .gte("processed_date_time", start_date) \
             .execute()
         
         if response.data and len(response.data) > 0:
             # Decrypt fields for the report if needed
             decrypted_data = []
             for entry in response.data:
-                print(entry['date_hired'])
-                print(entry['last_day'])
                 decrypted_data.append({
                     "Employee no.": decrypt_field(entry['employee_no']),
                     "Last Name": decrypt_field(entry['last_name']),
@@ -199,18 +195,64 @@ async def get_csv_report(start_date: str, end_date: str):
                     "Department": decrypt_field(entry['department']),
                     "Date hired": entry['date_hired'],
                     "Last day with AUB": entry['last_day'],
-                    "Date and Time processed": (
-                        datetime.fromisoformat(entry['processed_date_time'].replace("Z", "+00:00")).strftime("%B %d, %Y %I:%M %p")
-                        if entry.get('processed_date_time') else ""
-                    )
+                    "Date HR Emailed": entry['date_hr_emailed'],
+                    "Batch Deactivation from UM": entry['um_date_deac'],
+                    "3rd party systems/apps": entry['tp_date_deac'],
+                    "E-mails": entry['email_date_deac'],
+                    "Windows": entry['windows_date_deac'],
+                    "Remarks": decrypt_field(entry['remarks'])
                 })
             csv_file = StringIO()
-            generate_report(csv_file, decrypted_data)
+            generate_csv_report(csv_file, decrypted_data)
 
             return Response(
                 content=csv_file.getvalue(),
                 media_type="text/csv",
                 headers={"Content-Disposition": "attachment; filename=export.csv"},
+            )
+        else:
+            raise HTTPException(status_code=404, detail="There were no resignees processed within the given period")
+    
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+@router.get("/report/xls")
+async def get_excel_report(start_date: str, end_date: str):
+
+    try:
+        response = supabase.table("ResignedEmployees") \
+            .select("*") \
+            .execute()
+        
+        if response.data and len(response.data) > 0:
+            decrypted_data = []
+            for entry in response.data:
+                decrypted_data.append({
+                    "Employee no.": decrypt_field(entry['employee_no']),
+                    "Last Name": decrypt_field(entry['last_name']),
+                    "First Name": decrypt_field(entry['first_name']),
+                    "Middle Name": decrypt_field(entry['middle_name']),
+                    "Cost center": decrypt_field(entry['cost_center']),
+                    "Position Title": decrypt_field(entry['position_title']),
+                    "Rank": decrypt_field(entry['rank']),
+                    "Department": decrypt_field(entry['department']),
+                    "Date hired": entry['date_hired'],
+                    "Last day with AUB": entry['last_day'],
+                    "Date HR Emailed": entry['date_hr_emailed'],
+                    "Batch Deactivation from UM": entry['um_date_deac'],
+                    "3rd party systems/apps": entry['tp_date_deac'],
+                    "E-mails": entry['email_date_deac'],
+                    "Windows": entry['windows_date_deac'],
+                    "Remarks": decrypt_field(entry['remarks'])
+                })
+                
+            excel_file = BytesIO()
+            generate_xls_report(excel_file, decrypted_data)
+            excel_file.seek(0)
+            return Response(
+                content=excel_file.read(),
+                media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                headers={"Content-Disposition": "attachment; filename=export.xlsx"},
             )
         else:
             raise HTTPException(status_code=404, detail="There were no resignees processed within the given period")
