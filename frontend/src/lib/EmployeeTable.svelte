@@ -510,7 +510,7 @@
                                     {:else}
                                         <!-- Display Mode: Date + Pencil Icon -->
                                         <span class="flex-1">
-                                            {formatDate(employee.last_day)}
+                                            {String(employee.employee_no || '')}
                                         </span>
                                         <button
                                             type="button"
@@ -767,10 +767,58 @@
                             </td>
 
                             <!-- Remarks Field -->
-                            <td class="px-6 py-2 whitespace-nowrap">
-                            <!-- <textarea
-                            class="block w-full p-1 text-gray-900 border border-gray-300 rounded-lg bg-white text-base resize-y"
-                            ></textarea> -->
+                            <td class="px-6 py-2 whitespace-normal text-sm text-gray-900">
+                                <div class="flex items-center gap-2">
+                                    {#if editingEmployeeId === employee.employee_no}
+                                        <!-- Edit Mode: Text Field + Check Icon -->
+                                        <textarea
+                                            bind:value={editingValue}
+                                            rows="3"
+                                            class="text-sm border border-gray-300 rounded px-2 py-1 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 h-20 w-40"
+                                            on:keydown={(e) => {
+                                                if (e.key === 'Enter') {
+                                                    saveEdit(employee);
+                                                }
+                                            }}
+                                        ></textarea>
+                                        <button
+                                            type="button"
+                                            on:click={() => saveEdit(employee)}
+                                            class="text-green-600 hover:text-green-800 transition-colors"
+                                            title="Save changes"
+                                        >
+                                            <!-- Check Icon -->
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                                            </svg>
+                                        </button>
+                                    {:else}
+                                        <!-- Display Mode: Date + Pencil Icon -->
+                                        <span class="flex-1">
+                                            {String(employee.remarks || 'N/A')}
+                                        </span>
+
+                                        <!--
+                                        <span
+                                            class="inline-flex px-2 py-1 text-xs font-medium rounded-full {employee.processed_date_time ? 'bg-[#CFEED8] text-[#1E9F37]' : 'bg-[#FED9DA] text-[#D7313E]'}"
+                                        >
+                                            {employee.processed_date_time ? 'Processed' : 'Unprocessed'}
+                                        </span>
+                                        -->
+
+                                        <button
+                                            type="button"
+                                            on:click={() => startEditing(employee)}
+                                            class="text-gray-400 hover:text-gray-600 transition-colors"
+                                            title="Edit last day"
+                                        >
+                                            <!-- Pencil/Edit Icon -->
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+                                            </svg>
+                                        </button>
+                                    {/if}
+                                </div>
                             </td>
 
                             </tr>
