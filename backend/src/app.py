@@ -5,6 +5,7 @@ from fastapi.responses import Response
 from fastapi.responses import JSONResponse
 from services import verify_token
 from routes import router
+from auth import auth_router
 from typing import Callable, Awaitable
 
 app = FastAPI(swagger_ui_parameters={"syntaxHighlight": {"theme": "obsidian"}})
@@ -17,6 +18,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+app.include_router(auth_router)
 app.include_router(router)
 
 @app.middleware("http")
