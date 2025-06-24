@@ -109,22 +109,22 @@
             // Set endpoint based on the field being edited
             switch (key) {
                 case 'last_day':
-                    endpoint = `https://localhost:8000/resignees/${employee.employee_no}/last_day/edit`;
+                    endpoint = `https://localhost:8000/resignees/${employee.employee_no}/last_day`;
                     break;
                 case 'um':
-                    endpoint = `https://localhost:8000/resignees/${employee.employee_no}/um/edit`;
+                    endpoint = `https://localhost:8000/resignees/${employee.employee_no}/um`;
                     break;
                 case 'third_party':
-                    endpoint = `https://localhost:8000/resignees/${employee.employee_no}/third_party/edit`;
+                    endpoint = `https://localhost:8000/resignees/${employee.employee_no}/third-party`;
                     break;
                 case 'email':
-                    endpoint = `https://localhost:8000/resignees/${employee.employee_no}/email/edit`;
+                    endpoint = `https://localhost:8000/resignees/${employee.employee_no}/email`;
                     break;
                 case 'windows':
-                    endpoint = `https://localhost:8000/resignees/${employee.employee_no}/windows/edit`;
+                    endpoint = `https://localhost:8000/resignees/${employee.employee_no}/windows`;
                     break;
                 case 'date_hr_emailed':
-                    endpoint = `https://localhost:8000/resignees/${employee.employee_no}/date_hr_emailed/edit`;
+                    endpoint = `https://localhost:8000/resignees/${employee.employee_no}/date_hr_emailed`;
                     break;
                 default:
                     throw new Error(`Unknown field: ${key}`);
@@ -185,9 +185,9 @@
             const res = await fetch(`https://localhost:8000/resignees/${employee.employee_no}/remarks`, {
                 method: 'PUT',
                 headers: {
-                    'Content-Type': 'application/json',
+                    'Content-Type': 'text/plain',
                 },
-                body: JSON.stringify({ remarks: trimmedRemarks }),
+                body: trimmedRemarks,
                 credentials: 'include',
             });
 
@@ -277,13 +277,6 @@
         if (observer) observer.disconnect();
         observer = new MutationObserver(updateScrollbarWidth);
         observer.observe(scrollWrapper, { childList: true, subtree: true });
-
-        // Clean up on destroy
-        onDestroy(() => {
-            scrollWrapper.removeEventListener('scroll', wrapperHandler);
-            stickyScrollbar.removeEventListener('scroll', stickyHandler);
-            if (observer) observer.disconnect();
-        });
     }
 
     onMount(() => {
