@@ -9,7 +9,12 @@ class ResigneeDisplay(BaseModel):
     rank: str
     department: str 
     last_day: str
-    processed_date_time: str | None
+    date_hr_emailed: str
+    um_date_deac: str | None
+    tp_date_deac: str | None
+    email_date_deac: str | None
+    windows_date_deac: str | None
+    remarks: str | None
 
 class ResigneeCreate(BaseModel):
     employee_no: str
@@ -22,4 +27,3 @@ class ResigneeCreate(BaseModel):
     rank: str
     department: str 
     last_day: str
-    processed_date_time: str | None

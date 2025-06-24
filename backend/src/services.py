@@ -32,8 +32,7 @@ def parse_resignee_text(raw_text: str) -> list[ResigneeCreate]:
                 position_title=chunk[6],
                 rank=chunk[7],
                 department=chunk[8],
-                last_day=chunk[9],
-                processed_date_time= None
+                last_day=chunk[9]
             )
             employees.append(employee)
         except Exception:
