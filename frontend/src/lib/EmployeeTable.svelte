@@ -112,9 +112,9 @@
             }
 
         } catch (error) {
-            console.error('Error updating last day:', error);
+            console.error('Error updating date:', error);
             const msg = error instanceof Error ? error.message : 'Unknown error';
-            alert(`Failed to update last day: ${msg}`);
+            alert(`Failed to update date: ${msg}`);
         } finally {
             editingEmployeeId = null;
             editingValue = '';
@@ -590,7 +590,7 @@
                                             type="button"
                                             on:click={() => startEditing(employee, 'um')}
                                             class="text-gray-400 hover:text-gray-600 transition-colors"
-                                            title="Edit last day"
+                                            title="Edit batch deactivtion date"
                                         >
                                             <!-- Pencil/Edit Icon -->
                                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -636,7 +636,7 @@
                                             type="button"
                                             on:click={() => startEditing(employee, 'third_party')}
                                             class="text-gray-400 hover:text-gray-600 transition-colors"
-                                            title="Edit last day"
+                                            title="Edit date for 3rd party"
                                         >
                                             <!-- Pencil/Edit Icon -->
                                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -683,7 +683,7 @@
                                             type="button"
                                             on:click={() => startEditing(employee, 'email')}
                                             class="text-gray-400 hover:text-gray-600 transition-colors"
-                                            title="Edit last day"
+                                            title="Edit date for emails"
                                         >
                                             <!-- Pencil/Edit Icon -->
                                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -729,7 +729,7 @@
                                             type="button"
                                             on:click={() => startEditing(employee, 'windows')}
                                             class="text-gray-400 hover:text-gray-600 transition-colors"
-                                            title="Edit last day"
+                                            title="Edit date for Windows"
                                         >
                                             <!-- Pencil/Edit Icon -->
                                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -784,7 +784,7 @@
                                             type="button"
                                             on:click={() => startEditing(employee, 'hr_email_date')}
                                             class="text-gray-400 hover:text-gray-600 transition-colors"
-                                            title="Edit last day"
+                                            title="Edit date for HR email"
                                         >
                                             <!-- Pencil/Edit Icon -->
                                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -804,11 +804,6 @@
                                             bind:value={editingValue}
                                             rows="3"
                                             class="text-sm border border-gray-300 rounded px-2 py-1 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 h-20 w-40"
-                                            on:keydown={(e) => {
-                                                if (e.key === 'Enter') {
-                                                    saveRemarks(employee);
-                                                }
-                                            }}
                                         ></textarea>
                                         <button
                                             type="button"
@@ -831,7 +826,7 @@
                                             type="button"
                                             on:click={() => startEditingRemarks(employee)}
                                             class="text-gray-400 hover:text-gray-600 transition-colors"
-                                            title="Edit last day"
+                                            title="Edit remarks"
                                         >
                                             <!-- Pencil/Edit Icon -->
                                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
