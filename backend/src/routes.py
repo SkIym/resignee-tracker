@@ -4,7 +4,7 @@ load_dotenv()
 # list endpoints here
 from fastapi import APIRouter, HTTPException, Body, Path, Query
 from schemas import ResigneeDisplay, ResigneeCreate
-from services import parse_resignee_text, generate_csv_report, generate_xls_report
+from services import parse_resignee_text, generate_csv_report, generate_xls_report, is_no_existing_account
 from datetime import datetime
 from supabase_client import supabase
 from io import StringIO, BytesIO
@@ -288,18 +288,16 @@ async def get_report(start_date: str, end_date: str, format: str = Query(default
     Generate an CSV or XLSX report of processed resignees within a selected timeframe.
     """
     try:
-        end_datetime = datetime.fromisoformat(end_date)
+        # end_datetime = datetime.fromisoformat(end_date)
 
-        # Set the time to 23:59:59 of the same day
-        end_datetime = end_datetime.replace(hour=23, minute=59, second=59)
+        # # Set the time to 23:59:59 of the same day
+        # end_datetime = end_datetime.replace(hour=23, minute=59, second=59)
 
-        # Convert back to ISO format string if needed
-        end_date_with_time = end_datetime.isoformat()
+        # # Convert back to ISO format string if needed
+        # end_date_with_time = end_datetime.isoformat()
         
         response = supabase.table("ResignedEmployees") \
             .select("*") \
-            .lte("processed_date_time", end_date_with_time) \
-            .gte("processed_date_time", start_date) \
             .execute()
         
         if response.data and len(response.data) > 0:
@@ -318,10 +316,10 @@ async def get_report(start_date: str, end_date: str, format: str = Query(default
                     "Date hired": entry['date_hired'],
                     "Last day with AUB": entry['last_day'],
                     "Date HR Emailed": entry['date_hr_emailed'],
-                    "Batch Deactivation from UM": entry['um_date_deac'],
-                    "3rd party systems/apps": entry['tp_date_deac'],
-                    "E-mails": entry['email_date_deac'],
-                    "Windows": entry['windows_date_deac'],
+                    "Batch Deactivation from UM": "No Existing Account" if is_no_existing_account(entry['um_date_deac']) else entry['um_date_deac'],
+                    "3rd party systems/apps": "No Existing Account" if is_no_existing_account(entry['tp_date_deac']) else entry['tp_date_deac'],
+                    "E-mails": "No Existing Account" if is_no_existing_account(entry['email_date_deac']) else entry['email_date_deac'],
+                    "Windows": "No Existing Account" if is_no_existing_account(entry['windows_date_deac']) else entry['windows_date_deac'],
                     "Remarks": decrypt_field(entry['remarks'])
                 })
 

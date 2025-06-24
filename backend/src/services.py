@@ -97,3 +97,8 @@ async def verify_token(token: str):
         return token_data
     except jwt.PyJWTError as e:
         return None
+
+def is_no_existing_account(date: str | None) -> bool:
+    if date is None: return False
+    
+    return date < '2020-01-01'
