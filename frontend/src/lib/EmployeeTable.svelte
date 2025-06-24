@@ -123,8 +123,8 @@
                 case 'windows':
                     endpoint = `https://localhost:8000/resignees/${employee.employee_no}/windows/edit`;
                     break;
-                case 'hr_email_date':
-                    endpoint = `https://localhost:8000/resignees/${employee.employee_no}/hr_email_date/edit`;
+                case 'date_hr_emailed':
+                    endpoint = `https://localhost:8000/resignees/${employee.employee_no}/date_hr_emailed/edit`;
                     break;
                 default:
                     throw new Error(`Unknown field: ${key}`);
@@ -856,7 +856,7 @@
                             <!-- Editable HR Email Cell -->
                             <td class="pl-6 py-2 whitespace-nowrap text-sm text-gray-900">
                                 <div class="flex items-center gap-2">
-                                    {#if editingEmployeeId?.id === employee.employee_no && editingEmployeeId?.key === 'hr_email_date'}
+                                    {#if editingEmployeeId?.id === employee.employee_no && editingEmployeeId?.key === 'date_hr_emailed'}
                                         <!-- Edit Mode: Date Input + Check Icon -->
                                         <input
                                             type="date"
@@ -882,12 +882,12 @@
                                     {:else}
                                         <!-- Display Mode: Date + Pencil Icon -->
                                         <span class="flex-1">
-                                            {formatDate(employee.hr_email_date)}
+                                            {formatDate(employee.date_hr_emailed)}
                                         </span>
 
                                         <button
                                             type="button"
-                                            on:click={() => startEditing(employee, 'hr_email_date')}
+                                            on:click={() => startEditing(employee, 'date_hr_emailed')}
                                             class="text-gray-400 hover:text-gray-600 transition-colors"
                                             title="Edit date for HR email"
                                         >
