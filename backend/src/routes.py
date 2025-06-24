@@ -2,12 +2,12 @@ from dotenv import load_dotenv
 load_dotenv()
 
 # list endpoints here
-from fastapi import APIRouter, HTTPException, Body, Path, Form
+from fastapi import APIRouter, HTTPException, Body, Path, Form, Query
 from schemas import ResigneeDisplay, ResigneeCreate
 from services import parse_resignee_text, generate_report
 from datetime import datetime
 from supabase_client import supabase
-from io import StringIO
+from io import StringIO, BytesIO
 from fastapi.responses import Response
 from datetime import timedelta
 from crypto_utils import encrypt_field, decrypt_field
@@ -15,6 +15,8 @@ import jwt
 import os
 import hashlib
 from fastapi.requests import Request
+from openpyxl import Workbook
+
     
 router = APIRouter()
 
@@ -195,9 +197,9 @@ async def edit_employee_last_day(
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.get("/resignees/report")
-async def get_csv_report(start_date: str, end_date: str):
+async def get_csv_report(start_date: str, end_date: str, format: str = Query(default="csv", regex="^(csv|xlsx)$")):
     """
-    Generate an CSV report of processed resignees within a selected timeframe.
+    Generate an CSV or XLSX report of processed resignees within a selected timeframe.
     """
     try:
         end_datetime = datetime.fromisoformat(end_date)
@@ -236,14 +238,47 @@ async def get_csv_report(start_date: str, end_date: str):
                         if entry.get('processed_date_time') else ""
                     )
                 })
-            csv_file = StringIO()
-            generate_report(csv_file, decrypted_data)
 
-            return Response(
+            if format == "csv":
+                csv_file = StringIO()
+                generate_report(csv_file, decrypted_data)
+                return Response(
                 content=csv_file.getvalue(),
                 media_type="text/csv",
                 headers={"Content-Disposition": "attachment; filename=export.csv"},
-            )
+                )
+
+            elif format == "xlsx":
+                output = BytesIO()
+                wb = Workbook()
+                ws = wb.active
+                ws.title = "Resignee Report"
+
+                headers = [
+                    "Employee no.",
+                    "Date hired",
+                    "Cost center",
+                    "Last Name",
+                    "First Name",
+                    "Middle Name",
+                    "Position Title",
+                    "Rank",
+                    "Department",
+                    "Last day with AUB",
+                    "Date and Time processed"
+                ]
+                ws.append(headers)
+                for row in decrypted_data:
+                    ws.append([row.get(col, "") for col in headers])
+
+                wb.save(output)
+                output.seek(0)
+                return Response(
+                    content=output.read(),
+                    media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                    headers={"Content-Disposition": "attachment; filename=export.xlsx"},
+                )
+
         else:
             raise HTTPException(status_code=404, detail="There were no resignees processed within the given period")
     

@@ -3,3 +3,4 @@ uvicorn[standard]
 supabase
 XlsxWriter
 cryptography
+openpyxl>=3.1.2
