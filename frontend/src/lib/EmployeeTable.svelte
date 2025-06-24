@@ -555,8 +555,8 @@
                                         </button>
                                     {:else}
                                         <!-- Display Mode: Date + Pencil Icon -->
-                                        <span class="flex-1">
-                                            {formatDate(employee.last_day)}
+                                        <span class="inline-flex px-2 py-1 text-xs font-medium rounded-full {employee.um ? 'bg-[#CFEED8] text-[#1E9F37]}' : 'bg-[#FED9DA] text-[#D7313E]'}">
+                                            {employee.um ? formatDate(employee.um) : 'N/A'}
                                         </span>
                                         <button
                                             type="button"
@@ -601,8 +601,8 @@
                                         </button>
                                     {:else}
                                         <!-- Display Mode: Date + Pencil Icon -->
-                                        <span class="flex-1">
-                                            {formatDate(employee.last_day)}
+                                        <span class="inline-flex px-2 py-1 text-xs font-medium rounded-full {employee.um ? 'bg-[#CFEED8] text-[#1E9F37]}' : 'bg-[#FED9DA] text-[#D7313E]'}">
+                                            {formatDate(employee.third_party)}
                                         </span>
                                         <button
                                             type="button"
@@ -647,8 +647,8 @@
                                         </button>
                                     {:else}
                                         <!-- Display Mode: Date + Pencil Icon -->
-                                        <span class="flex-1">
-                                            {formatDate(employee.last_day)}
+                                        <span class="inline-flex px-2 py-1 text-xs font-medium rounded-full {employee.um ? 'bg-[#CFEED8] text-[#1E9F37]}' : 'bg-[#FED9DA] text-[#D7313E]'}">
+                                            {formatDate(employee.email)}
                                         </span>
                                         <button
                                             type="button"
@@ -693,8 +693,8 @@
                                         </button>
                                     {:else}
                                         <!-- Display Mode: Date + Pencil Icon -->
-                                        <span class="flex-1">
-                                            {formatDate(employee.last_day)}
+                                        <span class="inline-flex px-2 py-1 text-xs font-medium rounded-full {employee.um ? 'bg-[#CFEED8] text-[#1E9F37]}' : 'bg-[#FED9DA] text-[#D7313E]'}">
+                                            {formatDate(employee.windows)}
                                         </span>
                                         <button
                                             type="button"
@@ -740,8 +740,17 @@
                                     {:else}
                                         <!-- Display Mode: Date + Pencil Icon -->
                                         <span class="flex-1">
-                                            {formatDate(employee.last_day)}
+                                            {formatDate(employee.hr_email_date)}
                                         </span>
+
+                                        <!--
+                                        <span
+                                            class="inline-flex px-2 py-1 text-xs font-medium rounded-full {employee.processed_date_time ? 'bg-[#CFEED8] text-[#1E9F37]' : 'bg-[#FED9DA] text-[#D7313E]'}"
+                                        >
+                                            {employee.processed_date_time ? 'Processed' : 'Unprocessed'}
+                                        </span>
+                                        -->
+
                                         <button
                                             type="button"
                                             on:click={() => startEditing(employee)}
