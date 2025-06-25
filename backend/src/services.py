@@ -1,14 +1,14 @@
 # place parsing functions and other business logic here
 
 # Parsing function (from raw text from email to labeled data)
-from schemas import ResigneeCreate
+from schemas import ResigneeCreate, Account
 from io import StringIO, BytesIO
 import csv
 from typing import Sequence, Mapping, Any
 import jwt
 import os
 import xlsxwriter
-from datetime import datetime
+from datetime import datetime, timedelta
 
 headers = [
     "Employee no.", "Date hired", "Cost center", "Last Name", "First Name", "Middle Name",
@@ -102,3 +102,36 @@ def decode_deactivation_date(date: str | None) -> str | None:
     if date is None: return ""
     if date < '2020-01-01': return "No Existing Account"
     return date
+
+def is_late(resigned: str, deac: str | None, hr: str, acc: Account) -> bool:
+    
+    # Tag only if account exists or account has been deactivated
+    if (deac and deac > '2020-01-01'): 
+
+        resigned_d = datetime.strptime(resigned, "%Y-%m-%d").date()
+        deac_d = datetime.strptime(deac, "%Y-%m-%d").date()
+        hr_d = datetime.strptime(hr, "%Y-%m-%d").date()
+
+        match acc:
+            case Account.UM:
+                # If HR email was delayed
+                if (resigned_d < hr_d): return True
+                
+                # If UM account was deactivated later than last day
+                if (resigned_d < deac_d): return True
+                
+                # Else, on time
+                return False
+            case _:
+                # If employee last day on Friday and deactivated on Monday
+                if (resigned_d.weekday() == 4 and deac_d.weekday() == 0): return False
+
+                # If account was deactivated the day after last day of employee
+                if (resigned_d + timedelta(days=1)) == deac_d: return False
+
+                # Else, late
+                return True
+            
+    return False
+            
+
