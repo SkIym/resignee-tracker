@@ -365,39 +365,39 @@ async def get_report(start_date: str, end_date: str, format: str = Query(default
         raise HTTPException(status_code=500, detail=str(e))
     
 # Endpoint to mark resignation entry as processed (will now not be returned to client )
-# @router.put("/{employee_no}/process")
-# async def mark_resignee_processed(employee_no: str = Path(...)):
-#     try:
-#         now = datetime.now().isoformat()
-#         employee_no_hash = hash_employee_no(employee_no)
-#         response = supabase.table("ResignedEmployees") \
-#             .update({"processed_date_time": now}) \
-#             .eq("employee_no_hash", employee_no_hash) \
-#             .execute()
-#         if response.data and len(response.data) > 0:
-#             return {"message": f"Employee {employee_no} marked as processed.", "processed_date_time": now}
-#         else:
-#             raise HTTPException(status_code=404, detail="Employee not found")
-#     except Exception as e:
-#         raise HTTPException(status_code=400, detail=str(e))
+@router.put("/{employee_no}/process")
+async def mark_resignee_processed(employee_no: str = Path(...)):
+    try:
+        now = datetime.now().isoformat()
+        employee_no_hash = hash_employee_no(employee_no)
+        response = supabase.table("ResignedEmployees") \
+            .update({"processed_date_time": now}) \
+            .eq("employee_no_hash", employee_no_hash) \
+            .execute()
+        if response.data and len(response.data) > 0:
+            return {"message": f"Employee {employee_no} marked as processed.", "processed_date_time": now}
+        else:
+            raise HTTPException(status_code=404, detail="Employee not found")
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
 
 
-# @router.put("/{employee_no}/unprocess")
-# async def unmark_resignee_processed(
-#     employee_no: str = Path(..., description="Employee number to unmark as processed")
-# ):
-#     """
-#     Unmark a resignee as processed by setting the processed_date_time to None.
-#     """
-#     try:
-#         employee_no_hash = hash_employee_no(employee_no)
-#         response = supabase.table("ResignedEmployees") \
-#             .update({"processed_date_time": None}) \
-#             .eq("employee_no_hash", employee_no_hash) \
-#             .execute()
-#         if response.data and len(response.data) > 0:
-#             return {"message": f"Employee {employee_no} unmarked as processed."}
-#         else:
-#             raise HTTPException(status_code=404, detail="Employee not found")
-#     except Exception as e:
-#         raise HTTPException(status_code=400, detail=str(e))
+@router.put("/{employee_no}/unprocess")
+async def unmark_resignee_processed(
+    employee_no: str = Path(..., description="Employee number to unmark as processed")
+):
+    """
+    Unmark a resignee as processed by setting the processed_date_time to None.
+    """
+    try:
+        employee_no_hash = hash_employee_no(employee_no)
+        response = supabase.table("ResignedEmployees") \
+            .update({"processed_date_time": None}) \
+            .eq("employee_no_hash", employee_no_hash) \
+            .execute()
+        if response.data and len(response.data) > 0:
+            return {"message": f"Employee {employee_no} unmarked as processed."}
+        else:
+            raise HTTPException(status_code=404, detail="Employee not found")
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
