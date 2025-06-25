@@ -57,12 +57,21 @@ def generate_xls_report(file: BytesIO, data: Sequence[Mapping[str, Any]]) -> Non
     worksheet = workbook.add_worksheet()
 
     header_format = workbook.add_format({'bold': True})
+    late_format = workbook.add_format({'bg_color': "#F9808E"})
 
     worksheet.write_row(0, 0, headers, header_format)
 
     i = 1
 
     for entry in data:
+        
+        last_day = entry['Last day with AUB']
+        hr = entry['Date HR Emailed']
+        um = entry['Batch Deactivation from UM']
+        tp = entry['3rd party systems/apps']
+        em = entry['E-mails']
+        wn = entry['Windows']
+
         details: list[Any] = [entry['Employee no.'],
         entry['Date hired'],
         entry['Cost center'],
@@ -72,14 +81,18 @@ def generate_xls_report(file: BytesIO, data: Sequence[Mapping[str, Any]]) -> Non
         entry['Position Title'],
         entry['Rank'],
         entry['Department'],
-        entry['Last day with AUB'],
-        entry['Date HR Emailed'],
-        entry['Batch Deactivation from UM'],
-        entry['3rd party systems/apps'],
-        entry['E-mails'],
-        entry['Windows'],
+        last_day,
+        hr,
+        um,
+        tp,
+        em,
+        wn,
         entry['Remarks']]
         worksheet.write_row(i, 0, details)
+
+        for col, (deac, acc) in enumerate([(um, Account.UM), (tp, Account.TP), (em, Account.EM), (wn, Account.WN)], 11):
+            if is_late(last_day, deac, hr, acc):
+                worksheet.write(i, col, deac, late_format)
         i += 1
 
     worksheet.autofit()
