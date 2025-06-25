@@ -269,6 +269,10 @@
           <EmployeeTable
             employees={filteredEmployees}
             onstatustoggle={handleStatusToggle}
+            onEmployeeUpdate={() => {
+                // Refetch your employee data here
+                loadEmployees();
+            }}
           />
         </div>
       {/if}

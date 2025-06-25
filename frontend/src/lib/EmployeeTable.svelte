@@ -1,6 +1,7 @@
 <script lang="ts">
     export let employees: Employee[] = [];
     export let onstatustoggle: (event: { detail: { employee: Employee, action?: string } }) => void;
+    export let onEmployeeUpdate: (() => void) | undefined = undefined;
 
     import { onMount, onDestroy } from 'svelte';
     import type { Employee } from '../types';
@@ -82,7 +83,7 @@
     function startEditing(employee: Employee, key: keyof Employee) {
         editingEmployeeId = { id: employee.employee_no, key };
 
-        if (typeof employee[key] === 'boolean') { return }
+        if (typeof employee[key] === 'boolean') return
 
         // Handle special "1900-01-01" date by clearing the input
         if (isNoAccountDate(employee[key])) {
@@ -97,12 +98,12 @@
         const { key } = editingEmployeeId;
         try {
             const trimmed = editingValue.trim();
-            let body, successMessage, endpoint;
+            let body, succesxsessage, endpoint;
 
             // Handle special "NO_ACCOUNT" value with a special date
             if (trimmed === 'NO_ACCOUNT') {
                 body = '1900-01-01';
-                successMessage = 'Marked as "No existing account" for employee no. ' + employee.employee_no;
+                succesxsessage = 'Marked as "No existing account" for employee no. ' + employee.employee_no;
             } else {
                 // Validate date format for regular date entries
                 const parsedDate = new Date(trimmed);
@@ -110,7 +111,7 @@
                     throw new Error("Invalid date format");
                 }
                 body = trimmed;
-                successMessage = 'Changes saved for employee no. ' + employee.employee_no;
+                succesxsessage = 'Changes saved for employee no. ' + employee.employee_no;
             }
 
             // Set endpoint based on the field being edited
@@ -159,7 +160,12 @@
                     employees[idx][key] = new Date(trimmed).toISOString();
                 }
                 employees = [...employees];
-                toast.success(successMessage);
+                // toast.success(successMessage);
+                
+                // Trigger a refetch of employee data to get updated late flags
+                if (onEmployeeUpdate) {
+                    onEmployeeUpdate();
+                }
             }
 
         } catch (error) {
@@ -334,12 +340,12 @@
         class="overflow-x-auto overflow-y-visible hide-main-scrollbar"
             bind:this={scrollWrapper}
         >
-            <table class="min-w-full text-sm text-left text-gray-700 bg-white">
+            <table class="min-w-full text-xs text-left text-gray-700 bg-white">
                     <thead class="bg-gray-100 text-xs text-gray-500 uppercase">
                         <tr>
                             <!---------- Employee no. ---------->
                             <th
-                                class="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 transition-colors sticky left-0 bg-gray-100"
+                                class="px-6 py-3 text-left text-[11px] font-bold text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 transition-colors sticky left-0 bg-gray-100"
                                 on:click={() => handleSort('employee_no')}
                             >
                             <div class="flex items-center gap-1">
@@ -358,7 +364,7 @@
 
                             <!---------- Date hired ---------->
                             <th 
-                                class="pl-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 transition-colors"
+                                class="pl-6 py-3 text-left text-[11px] font-bold text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 transition-colors"
                                 on:click={() => handleSort('date_hired')}
                             >
                             <div class="flex items-center gap-1">
@@ -376,13 +382,13 @@
                             </th>
 
                             <!---------- Cost center ---------->
-                            <th class="pl-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">
+                            <th class="pl-6 py-3 text-left text-[11px] font-bold text-gray-500 uppercase tracking-wider">
                                 Cost center
                             </th>
 
                             <!---------- Name ---------->
                             <th 
-                                class="pl-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 transition-colors"
+                                class="pl-6 py-3 text-left text-[11px] font-bold text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 transition-colors"
                                 on:click={() => handleSort('name')}
                             >
                             <div class="flex items-center gap-1">
@@ -400,18 +406,18 @@
                             </th>
 
                             <!---------- Position title ---------->
-                            <th class="pl-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">
+                            <th class="pl-6 py-3 text-left text-[11px] font-bold text-gray-500 uppercase tracking-wider">
                                 Position title
                             </th>
 
                             <!---------- Rank ---------->
-                            <th class="pl-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">
+                            <th class="pl-6 py-3 text-left text-[11px] font-bold text-gray-500 uppercase tracking-wider">
                                 Rank
                             </th>
 
                             <!---------- Department ---------->
                             <th 
-                                class="pl-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 transition-colors"
+                                class="pl-6 py-3 text-left text-[11px] font-bold text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 transition-colors"
                                 on:click={() => handleSort('department')}
                             >
                             <div class="flex items-center gap-1">
@@ -430,7 +436,7 @@
 
                             <!---------- Last day ---------->
                             <th 
-                                class="pl-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 transition-colors"
+                                class="pl-6 py-3 text-left text-[11px] font-bold text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 transition-colors"
                                 on:click={() => handleSort('last_day')}
                             >
                             <div class="flex items-center gap-1">
@@ -449,7 +455,7 @@
 
                             <!---------- Batch Deactivation ---------->
                             <th 
-                                class="pl-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 transition-colors"
+                                class="pl-6 py-3 text-left text-[11px] font-bold text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 transition-colors"
                                 on:click={() => handleSort('last_day')}
                             >
                             <div class="flex items-center gap-1">
@@ -468,7 +474,7 @@
 
                             <!---------- 3rd Party Systems ---------->
                             <th 
-                                class="pl-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 transition-colors"
+                                class="pl-6 py-3 text-left text-[11px] font-bold text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 transition-colors"
                                 on:click={() => handleSort('last_day')}
                             >
                             <div class="flex items-center gap-1">
@@ -487,7 +493,7 @@
 
                             <!---------- Emails ---------->
                             <th 
-                                class="pl-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 transition-colors"
+                                class="pl-6 py-3 text-left text-[11px] font-bold text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 transition-colors"
                                 on:click={() => handleSort('last_day')}
                             >
                             <div class="flex items-center gap-1">
@@ -506,7 +512,7 @@
 
                             <!---------- Windows ---------->
                             <th 
-                                class="pl-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 transition-colors"
+                                class="pl-6 py-3 text-left text-[11px] font-bold text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 transition-colors"
                                 on:click={() => handleSort('last_day')}
                             >
                             <div class="flex items-center gap-1">
@@ -525,7 +531,7 @@
 
                             <!---------- HR Email ---------->
                             <th 
-                                class="pl-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 transition-colors"
+                                class="pl-6 py-3 text-left text-[11px] font-bold text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 transition-colors"
                                 on:click={() => handleSort('last_day')}
                             >
                             <div class="flex items-center gap-1">
@@ -543,12 +549,12 @@
                             </th>
 
                             <!---------- Status ---------->
-                            <th class="pl-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">
+                            <th class="pl-6 py-3 text-left text-[11px] font-bold text-gray-500 uppercase tracking-wider">
                                 Status
                             </th>
 
                             <!---------- Remarks ---------->
-                            <th class="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">
+                            <th class="px-6 py-3 text-left text-[11px] font-bold text-gray-500 uppercase tracking-wider">
                                 Remarks
                             </th>
                             
@@ -558,37 +564,37 @@
                     <tbody class="bg-white divide-y divide-gray-200">
                         {#each sortedEmployees as employee, index (employee.employee_no)}
                             <tr class="hover:bg-gray-50 transition-colors">
-                            <td class="px-6 py-2 whitespace-normal text-sm font-medium text-gray-900 sticky left-0 bg-white">
+                            <td class="px-3 py-2 whitespace-normal text-xs font-medium text-gray-900 sticky left-0 bg-white">
                                 {String(employee.employee_no || '')}
                             </td>
-                            <td class="pl-6 py-2 whitespace-nowrap text-sm text-gray-900">
+                            <td class="pl-3 py-2 whitespace-nowrap text-xs text-gray-900">
                                 {formatDate(employee.date_hired)}
                             </td>
-                            <td class="pl-6 py-2 whitespace-normal text-sm text-gray-900">
+                            <td class="pl-3 py-2 whitespace-normal text-xs text-gray-900">
                                 {String(employee.cost_center || '')}
                             </td>
-                            <td class="pl-6 py-2 whitespace-normal text-sm font-medium text-gray-900">
+                            <td class="pl-3 py-2 whitespace-normal text-xs font-medium text-gray-900">
                                 {String(employee.name || '')}
                             </td>
-                            <td class="pl-6 py-2 whitespace-normal text-sm text-gray-900">
+                            <td class="pl-3 py-2 whitespace-normal text-xs text-gray-900">
                                 {String(employee.position_title || '')}
                             </td>
-                            <td class="pl-6 py-2 whitespace-normal text-sm text-gray-900">
+                            <td class="pl-3 py-2 whitespace-normal text-xs text-gray-900">
                                 {String(employee.rank || '')}
                             </td>
-                            <td class="pl-6 py-2 whitespace-normal text-sm text-gray-900">
+                            <td class="pl-3 py-2 whitespace-normal text-xs text-gray-900">
                                 {String(employee.department || '')}
                             </td>
 
                             <!-- Editable Last Day Cell -->
-                            <td class="pl-6 py-2 whitespace-nowrap text-sm text-gray-900">
+                            <td class="pl-3 py-2 whitespace-nowrap text-xs text-gray-900">
                                 <div class="flex items-center gap-2">
                                     {#if editingEmployeeId?.id === employee.employee_no && editingEmployeeId?.key === 'last_day'}
                                         <!-- Edit Mode: Date Input + Check Icon -->
                                         <input
                                             type="date"
                                             bind:value={editingValue}
-                                            class="text-sm border border-gray-300 rounded px-2 py-1 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                            class="text-xs border border-gray-300 rounded px-2 py-1 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                                             on:keydown={(e) => {
                                                 if (e.key === 'Enter') {
                                                     saveEdit(employee);
@@ -627,7 +633,7 @@
                             </td>
 
                             <!-- Editable Batch Deactivation Cell -->
-                            <td class="pl-6 py-2 whitespace-nowrap text-sm text-gray-900">
+                            <td class="pl-3 py-2 whitespace-nowrap text-xs text-gray-900">
                                 <div class="flex items-center gap-2">
                                     {#if editingEmployeeId?.id === employee.employee_no && editingEmployeeId?.key === 'um'}
                                         <!-- Edit Mode: Date Input + No Account Button + Check Icon -->
@@ -636,7 +642,7 @@
                                                 <input
                                                     type="date"
                                                     bind:value={editingValue}
-                                                    class="text-sm border border-gray-300 rounded px-2 py-1 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                                    class="text-xs border border-gray-300 rounded px-2 py-1 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                                                     on:keydown={(e) => {
                                                         if (e.key === 'Enter') {
                                                             saveEdit(employee);
@@ -662,7 +668,7 @@
                                                     editingValue = 'NO_ACCOUNT';
                                                     saveEdit(employee);
                                                 }}
-                                                class="text-sm border border-gray-300 hover:bg-gray-300 text-gray-700 w-24 rounded px-2 py-1 transition-colors"
+                                                class="text-xs border border-gray-300 hover:bg-gray-300 text-gray-700 w-24 rounded px-2 py-1 transition-colors"
                                                 title="Mark as no existing account"
                                             >
                                                 No account
@@ -672,7 +678,7 @@
                                         <!-- Display Mode: Date + Pencil Icon -->
 
                                         {#if employee.um_late}
-                                            <span class="inline-flex w-6 h-6 text-sm font-medium rounded-full bg-red-600 text-white items-center justify-center"> L </span>
+                                            <span class="inline-flex w-6 h-6 text-xs font-medium rounded-full bg-red-600 text-white items-center justify-center"> L </span>
                                         {/if}
 
                                         <span class="inline-flex px-2 py-1 text-xs font-medium rounded-full {isNoAccountDate(employee.um) ? 'bg-[#FFF3CD] text-[#856404]' : employee.um ? 'bg-[#CFEED8] text-[#1E9F37]' : 'bg-[#FED9DA] text-[#D7313E]'}">
@@ -694,7 +700,7 @@
                             </td>
 
                             <!-- Editable 3rd Party Systems Cell -->
-                            <td class="pl-6 py-2 whitespace-nowrap text-sm text-gray-900">
+                            <td class="pl-3 py-2 whitespace-nowrap text-xs text-gray-900">
                                 <div class="flex items-center gap-2">
                                     {#if editingEmployeeId?.id === employee.employee_no && editingEmployeeId?.key === 'third_party'}
                                         <!-- Edit Mode: Date Input + No Account Button + Check Icon -->
@@ -703,7 +709,7 @@
                                                 <input
                                                     type="date"
                                                     bind:value={editingValue}
-                                                    class="text-sm border border-gray-300 rounded px-2 py-1 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                                    class="text-xs border border-gray-300 rounded px-2 py-1 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                                                     on:keydown={(e) => {
                                                         if (e.key === 'Enter') {
                                                             saveEdit(employee);
@@ -729,7 +735,7 @@
                                                     editingValue = 'NO_ACCOUNT';
                                                     saveEdit(employee);
                                                 }}
-                                                class="text-sm border border-gray-300 hover:bg-gray-300 text-gray-700 w-24 rounded px-2 py-1 transition-colors"
+                                                class="text-xs border border-gray-300 hover:bg-gray-300 text-gray-700 w-24 rounded px-2 py-1 transition-colors"
                                                 title="Mark as no existing account"
                                             >
                                                 No account
@@ -739,7 +745,7 @@
                                         <!-- Display Mode: Date + Pencil Icon -->
 
                                         {#if employee.third_party_late}
-                                            <span class="inline-flex w-6 h-6 text-sm font-medium rounded-full bg-red-600 text-white items-center justify-center"> L </span>
+                                            <span class="inline-flex w-6 h-6 text-xs font-medium rounded-full bg-red-600 text-white items-center justify-center"> L </span>
                                         {/if}
 
                                         <span class="inline-flex px-2 py-1 text-xs font-medium rounded-full {isNoAccountDate(employee.third_party) ? 'bg-[#FFF3CD] text-[#856404]' : employee.third_party ? 'bg-[#CFEED8] text-[#1E9F37]' : 'bg-[#FED9DA] text-[#D7313E]'}">
@@ -761,7 +767,7 @@
                             </td>
 
                             <!-- Editable Emails Cell -->
-                            <td class="pl-6 py-2 whitespace-nowrap text-sm text-gray-900">
+                            <td class="pl-3 py-2 whitespace-nowrap text-xs text-gray-900">
                                 <div class="flex items-center gap-2">
                                     {#if editingEmployeeId?.id === employee.employee_no && editingEmployeeId?.key === 'email'}
                                         <!-- Edit Mode: Date Input + No Account Button + Check Icon -->
@@ -770,7 +776,7 @@
                                                 <input
                                                     type="date"
                                                     bind:value={editingValue}
-                                                    class="text-sm border border-gray-300 rounded px-2 py-1 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                                    class="text-xs border border-gray-300 rounded px-2 py-1 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                                                     on:keydown={(e) => {
                                                         if (e.key === 'Enter') {
                                                             saveEdit(employee);
@@ -796,7 +802,7 @@
                                                     editingValue = 'NO_ACCOUNT';
                                                     saveEdit(employee);
                                                 }}
-                                                class="text-sm border border-gray-300 hover:bg-gray-300 text-gray-700 w-24 rounded px-2 py-1 transition-colors"
+                                                class="text-xs border border-gray-300 hover:bg-gray-300 text-gray-700 w-24 rounded px-2 py-1 transition-colors"
                                                 title="Mark as no existing account"
                                             >
                                                 No account
@@ -806,7 +812,7 @@
                                         <!-- Display Mode: Date + Pencil Icon -->
 
                                         {#if employee.email_late}
-                                            <span class="inline-flex w-6 h-6 text-sm font-medium rounded-full bg-red-600 text-white items-center justify-center"> L </span>
+                                            <span class="inline-flex w-6 h-6 text-xs font-medium rounded-full bg-red-600 text-white items-center justify-center"> L </span>
                                         {/if}
 
                                         <span class="inline-flex px-2 py-1 text-xs font-medium rounded-full {isNoAccountDate(employee.email) ? 'bg-[#FFF3CD] text-[#856404]' : employee.email ? 'bg-[#CFEED8] text-[#1E9F37]' : 'bg-[#FED9DA] text-[#D7313E]'}">
@@ -828,7 +834,7 @@
                             </td>
 
                             <!-- Editable Windows Cell -->
-                            <td class="pl-6 py-2 whitespace-nowrap text-sm text-gray-900">
+                            <td class="pl-3 py-2 whitespace-nowrap text-xs text-gray-900">
                                 <div class="flex items-center gap-2">
                                     {#if editingEmployeeId?.id === employee.employee_no && editingEmployeeId?.key === 'windows'}
                                         <!-- Edit Mode: Date Input + No Account Button + Check Icon -->
@@ -837,7 +843,7 @@
                                                 <input
                                                     type="date"
                                                     bind:value={editingValue}
-                                                    class="text-sm border border-gray-300 rounded px-2 py-1 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                                    class="text-xs border border-gray-300 rounded px-2 py-1 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                                                     on:keydown={(e) => {
                                                         if (e.key === 'Enter') {
                                                             saveEdit(employee);
@@ -863,7 +869,7 @@
                                                     editingValue = 'NO_ACCOUNT';
                                                     saveEdit(employee);
                                                 }}
-                                                class="text-sm border border-gray-300 hover:bg-gray-300 text-gray-700 w-24 rounded px-2 py-1 transition-colors"
+                                                class="text-xs border border-gray-300 hover:bg-gray-300 text-gray-700 w-24 rounded px-2 py-1 transition-colors"
                                                 title="Mark as no existing account"
                                             >
                                                 No account
@@ -873,7 +879,7 @@
                                         <!-- Display Mode: Date + Pencil Icon -->
 
                                         {#if employee.windows_late}
-                                            <span class="inline-flex w-6 h-6 text-sm font-medium rounded-full bg-red-600 text-white items-center justify-center"> L </span>
+                                            <span class="inline-flex w-6 h-6 text-xs font-medium rounded-full bg-red-600 text-white items-center justify-center"> L </span>
                                         {/if}
 
                                         <span class="inline-flex px-2 py-1 text-xs font-medium rounded-full {isNoAccountDate(employee.windows) ? 'bg-[#FFF3CD] text-[#856404]' : employee.windows ? 'bg-[#CFEED8] text-[#1E9F37]' : 'bg-[#FED9DA] text-[#D7313E]'}">
@@ -895,14 +901,14 @@
                             </td>
 
                             <!-- Editable HR Email Cell -->
-                            <td class="pl-6 py-2 whitespace-nowrap text-sm text-gray-900">
+                            <td class="pl-3 py-2 whitespace-nowrap text-xs text-gray-900">
                                 <div class="flex items-center gap-2">
                                     {#if editingEmployeeId?.id === employee.employee_no && editingEmployeeId?.key === 'date_hr_emailed'}
                                         <!-- Edit Mode: Date Input + Check Icon -->
                                         <input
                                             type="date"
                                             bind:value={editingValue}
-                                            class="text-sm border border-gray-300 rounded px-2 py-1 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                            class="text-xs border border-gray-300 rounded px-2 py-1 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                                             on:keydown={(e) => {
                                                 if (e.key === 'Enter') {
                                                     saveEdit(employee);
@@ -942,7 +948,7 @@
                             </td>
 
                             <!-- Toggle Checkbox -->
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                            <td class="pl-5 py-4 whitespace-nowrap text-xs text-gray-500 flex justify-center items-center">
                             <input
                                 type="checkbox"
                                 class="w-5 h-5 text-green-600 rounded border-gray-300 focus:ring-green-500"
@@ -952,14 +958,14 @@
                             </td>
 
                             <!-- Remarks Field -->
-                            <td class="px-6 py-2 whitespace-normal text-sm text-gray-900">
+                            <td class="px-3 py-2 whitespace-normal text-xs text-gray-900">
                                 <div class="flex items-center gap-2">
                                     {#if editingEmployeeId?.id === employee.employee_no && editingEmployeeId?.key === 'remarks'}
                                         <!-- Edit Mode: Text Field + Check Icon -->
                                         <textarea
                                             bind:value={editingValue}
                                             rows="3"
-                                            class="text-sm border border-gray-300 rounded px-2 py-1 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 h-20 w-40"
+                                            class="text-xs border border-gray-300 rounded px-2 py-1 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 h-20 w-40"
                                         ></textarea>
                                         <button
                                             type="button"
@@ -1003,7 +1009,7 @@
                     <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                     </svg>
-                    <h3 class="mt-2 text-sm font-medium text-gray-900">No employees found</h3>
+                    <h3 class="mt-2 text-xs font-medium text-gray-900">No employees found</h3>
                     </div>
                 {/if}
             </div>
