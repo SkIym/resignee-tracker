@@ -19,6 +19,7 @@ class ResigneeDisplay(BaseModel):
     third_party_late: bool
     email_late: bool
     windows_late: bool
+    processed_date_time: str | None
 
 class ResigneeCreate(BaseModel):
     employee_no: str

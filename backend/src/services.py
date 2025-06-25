@@ -12,7 +12,7 @@ from datetime import datetime, timedelta
 
 headers = [
     "Employee no.", "Date hired", "Cost center", "Last Name", "First Name", "Middle Name",
-    "Position Title", "Rank", "Department", "Last day with AUB", "Date HR Emailed", "Batch Deactivation from UM", "3rd party systems/apps", "E-mails", "Windows", "Remarks"
+    "Position Title", "Rank", "Department", "Last day with AUB", "Date HR Emailed", "Batch Deactivation from UM", "3rd party systems/apps", "E-mails", "Windows", "Remarks", "Processed on"
 ]
 
 def parse_resignee_text(raw_text: str) -> list[ResigneeCreate]:
@@ -87,7 +87,8 @@ def generate_xls_report(file: BytesIO, data: Sequence[Mapping[str, Any]]) -> Non
             tp,
             em,
             wn,
-            entry['Remarks']]
+            entry['Remarks'],
+            entry['Processed on']]
             worksheet.write_row(i, 0, details)
 
             for col, (deac, acc) in enumerate([(um, Account.UM), (tp, Account.TP), (em, Account.EM), (wn, Account.WN)], 11):

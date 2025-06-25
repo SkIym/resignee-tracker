@@ -5,7 +5,7 @@ load_dotenv()
 from fastapi import APIRouter, HTTPException, Body, Path, Query
 from schemas import ResigneeDisplay, ResigneeCreate, Account
 from services import parse_resignee_text, generate_csv_report, generate_xls_report, is_late
-from datetime import datetime
+from datetime import datetime, timedelta
 from supabase_client import supabase
 from io import StringIO, BytesIO
 from fastapi.responses import Response
@@ -63,7 +63,8 @@ async def add_resignees(resignees: str = Body(..., media_type="text/plain")):
                 "tp_date_deac": None, 
                 "email_date_deac": None, 
                 "windows_date_deac": None,
-                "remarks": None
+                "remarks": None,
+                "processed_date_time": None
             }
             supabase.table("ResignedEmployees").insert(encrypted_data).execute()
 
@@ -93,22 +94,27 @@ async def add_resignees(resignees: str = Body(..., media_type="text/plain")):
 @router.get("")
 async def get_all_unprocessed_resignees():
     try:
-        # response = supabase.table("ResignedEmployees") \
-        #     .select("*") \
-        #     .or_("um_date_deac.is.null, tp_date_deac.is.null, email_date_deac.is.null, windows_date_deac.is.null") \
-        #     .execute()
-
         response = supabase.table("ResignedEmployees") \
             .select("*") \
+            .is_("processed_date_time", "null") \
             .execute()
         
         to_display = response.data
+        past_day_date = (datetime.now() - timedelta(days=1)).isoformat()
+
+        response = supabase.table("ResignedEmployees") \
+            .select("*") \
+            .not_.is_("processed_date_time", "null") \
+            .gte("processed_date_time", past_day_date) \
+            .execute()
+
+        to_display.extend(response.data) 
+
         cleaned_entries: list[ResigneeDisplay] = []
 
         for entry in to_display:
             try:
                 # Print types and values for debugging
-                print("Decrypting entry:", entry)
                 employee_no = decrypt_field(entry['employee_no']) if entry.get('employee_no') else ""
                 last_name = decrypt_field(entry['last_name']) if entry.get('last_name') else ""
                 first_name = decrypt_field(entry['first_name']) if entry.get('first_name') else ""
@@ -145,6 +151,7 @@ async def get_all_unprocessed_resignees():
                     third_party_late=is_late(last_day, third_party, date_hr_emailed, Account.TP),
                     email_late=is_late(last_day, email, date_hr_emailed, Account.EM),
                     windows_late=is_late(last_day, windows, date_hr_emailed, Account.WN),
+                    processed_date_time=entry.get('processed_date_time', "")
                 ))
             except Exception as inner_e:
                 print("Error decrypting entry:", entry)
@@ -341,7 +348,11 @@ async def get_report(start_date: str, end_date: str, format: str = Query(default
                     "3rd party systems/apps": entry['tp_date_deac'],
                     "E-mails": entry['email_date_deac'],
                     "Windows": entry['windows_date_deac'],
-                    "Remarks": (decrypt_field(entry['remarks']) if entry['remarks'] else "")
+                    "Remarks": (decrypt_field(entry['remarks']) if entry['remarks'] else ""),
+                    "Processed on": (
+                        datetime.fromisoformat(entry['processed_date_time'].replace("Z", "+00:00")).strftime("%B %d, %Y %I:%M %p")
+                        if entry.get('processed_date_time') else ""
+                    )
                 })
 
             if format == "csv":
