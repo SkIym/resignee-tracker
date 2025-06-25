@@ -678,7 +678,7 @@
                                         <!-- Display Mode: Date + Pencil Icon -->
 
                                         {#if employee.um_late}
-                                            <span class="inline-flex w-6 h-6 text-xs font-medium rounded-full bg-red-600 text-white items-center justify-center"> L </span>
+                                            <span class="inline-flex w-5 h-5 text-xs font-medium rounded-full bg-red-600 text-white items-center justify-center"> L </span>
                                         {/if}
 
                                         <span class="inline-flex px-2 py-1 text-xs font-medium rounded-full {isNoAccountDate(employee.um) ? 'bg-[#FFF3CD] text-[#856404]' : employee.um ? 'bg-[#CFEED8] text-[#1E9F37]' : 'bg-[#FED9DA] text-[#D7313E]'}">
@@ -745,7 +745,7 @@
                                         <!-- Display Mode: Date + Pencil Icon -->
 
                                         {#if employee.third_party_late}
-                                            <span class="inline-flex w-6 h-6 text-xs font-medium rounded-full bg-red-600 text-white items-center justify-center"> L </span>
+                                            <span class="inline-flex w-5 h-5 text-xs font-medium rounded-full bg-red-600 text-white items-center justify-center"> L </span>
                                         {/if}
 
                                         <span class="inline-flex px-2 py-1 text-xs font-medium rounded-full {isNoAccountDate(employee.third_party) ? 'bg-[#FFF3CD] text-[#856404]' : employee.third_party ? 'bg-[#CFEED8] text-[#1E9F37]' : 'bg-[#FED9DA] text-[#D7313E]'}">
@@ -812,7 +812,7 @@
                                         <!-- Display Mode: Date + Pencil Icon -->
 
                                         {#if employee.email_late}
-                                            <span class="inline-flex w-6 h-6 text-xs font-medium rounded-full bg-red-600 text-white items-center justify-center"> L </span>
+                                            <span class="inline-flex w-5 h-5 text-xs font-medium rounded-full bg-red-600 text-white items-center justify-center"> L </span>
                                         {/if}
 
                                         <span class="inline-flex px-2 py-1 text-xs font-medium rounded-full {isNoAccountDate(employee.email) ? 'bg-[#FFF3CD] text-[#856404]' : employee.email ? 'bg-[#CFEED8] text-[#1E9F37]' : 'bg-[#FED9DA] text-[#D7313E]'}">
@@ -879,7 +879,7 @@
                                         <!-- Display Mode: Date + Pencil Icon -->
 
                                         {#if employee.windows_late}
-                                            <span class="inline-flex w-6 h-6 text-xs font-medium rounded-full bg-red-600 text-white items-center justify-center"> L </span>
+                                            <span class="inline-flex w-5 h-5 text-xs font-medium rounded-full bg-red-600 text-white items-center justify-center"> L </span>
                                         {/if}
 
                                         <span class="inline-flex px-2 py-1 text-xs font-medium rounded-full {isNoAccountDate(employee.windows) ? 'bg-[#FFF3CD] text-[#856404]' : employee.windows ? 'bg-[#CFEED8] text-[#1E9F37]' : 'bg-[#FED9DA] text-[#D7313E]'}">
