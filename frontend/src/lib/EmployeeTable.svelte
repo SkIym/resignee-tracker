@@ -1,5 +1,6 @@
 <script lang="ts">
     export let employees: Employee[] = [];
+    export let onstatustoggle: (event: { detail: { employee: Employee, action?: string } }) => void;
 
     import { onMount, onDestroy } from 'svelte';
     import type { Employee } from '../types';
@@ -17,7 +18,7 @@
     let observer: MutationObserver | null = null;
     let scrollWrapper: HTMLDivElement;
 
-    function handleSort(field: 'name' | 'employee_no' | 'department' | 'position_title' | 'date_hired' | 'last_day') {
+    function handleSort(field: 'name' | 'employee_no' | 'department' | 'position_title' | 'date_hired' | 'last_day' | 'um' | 'third_party' | 'email' | 'windows' | 'date_hr_emailed' ) {
         if (sortField == field) {
             sortDirection = sortDirection === 'asc' ? 'desc' : 'asc';
         } else {
@@ -30,8 +31,12 @@
         if (!sortField) return 0;
         let aVal = a[sortField];
         let bVal = b[sortField];
+
+        if (typeof aVal === 'boolean' || typeof bVal === 'boolean') {
+            return 0;
+        }
         
-        if (sortField === 'date_hired' || sortField === 'last_day') {
+        if (sortField === 'date_hired' || sortField === 'last_day' || sortField === 'um' || sortField === 'third_party' || sortField === 'email' || sortField === 'windows') {
             const aDate = new Date(aVal || '1900-01-01');
             const bDate = new Date(bVal || '1900-01-01');
             
@@ -76,7 +81,9 @@
 
     function startEditing(employee: Employee, key: keyof Employee) {
         editingEmployeeId = { id: employee.employee_no, key };
-        
+
+        if (typeof employee[key] === 'boolean') { return }
+
         // Handle special "1900-01-01" date by clearing the input
         if (isNoAccountDate(employee[key])) {
             editingValue = '';
@@ -225,6 +232,22 @@
             cancelEdit();
         }
     }
+
+    function toggleStatus(employee: Employee) {
+        const currentStatus = employee.processed_date_time ? 'processed' : 'unprocessed';
+        const action = currentStatus === 'processed' ? 'unprocess' : 'process';
+        
+        if (onstatustoggle) {
+            onstatustoggle({ detail: { employee, action } });
+        }
+         setTimeout(() => {
+            if (action === 'process') {
+                toast.success('Employee no. ' + employee.employee_no + ' marked as processed');
+            } else {
+                toast.success('Employee no. ' + employee.employee_no + ' marked as unprocessed');
+            }
+        }, 300);
+    } 
 
     async function setupScrollbarSync() {
         if (!scrollWrapper || !stickyScrollbar) return;
@@ -432,9 +455,9 @@
                             <div class="flex items-center gap-1">
                                 Batch Deactivation
                                 <svg class="w-4 h-4 shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                                    {#if sortField === 'last_day' && sortDirection === 'asc'}
+                                    {#if sortField === 'um' && sortDirection === 'asc'}
                                     <path fill-rule="evenodd" d="M14.707 12.707a1 1 0 01-1.414 0L10 9.414l-3.293 3.293a1 1 0 01-1.414-1.414l4-4a1 1 0 011.414 0l4 4a1 1 0 010 1.414z" />
-                                    {:else if sortField === 'last_day' && sortDirection === 'desc'}
+                                    {:else if sortField === 'um' && sortDirection === 'desc'}
                                     <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" />
                                     {:else}
                                     <path fill-rule="evenodd" d="M10 3a1 1 0 01.707.293l3 3a1 1 0 01-1.414 1.414L10 5.414 7.707 7.707a1 1 0 01-1.414-1.414l3-3A1 1 0 0110 3zm-3.707 9.293a1 1 0 011.414 0L10 14.586l2.293-2.293a1 1 0 011.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" />
@@ -517,6 +540,11 @@
                                     {/if}
                                 </svg>
                             </div>
+                            </th>
+
+                            <!---------- Status ---------->
+                            <th class="pl-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">
+                                Status
                             </th>
 
                             <!---------- Remarks ---------->
@@ -642,6 +670,11 @@
                                         </div>
                                     {:else}
                                         <!-- Display Mode: Date + Pencil Icon -->
+
+                                        {#if employee.um_late}
+                                            <span class="inline-flex w-6 h-6 text-sm font-medium rounded-full bg-red-600 text-white items-center justify-center"> L </span>
+                                        {/if}
+
                                         <span class="inline-flex px-2 py-1 text-xs font-medium rounded-full {isNoAccountDate(employee.um) ? 'bg-[#FFF3CD] text-[#856404]' : employee.um ? 'bg-[#CFEED8] text-[#1E9F37]' : 'bg-[#FED9DA] text-[#D7313E]'}">
                                             {isNoAccountDate(employee.um) ? 'No account' : employee.um ? formatDate(employee.um) : 'N/A'}
                                         </span>
@@ -704,6 +737,11 @@
                                         </div>
                                     {:else}
                                         <!-- Display Mode: Date + Pencil Icon -->
+
+                                        {#if employee.third_party_late}
+                                            <span class="inline-flex w-6 h-6 text-sm font-medium rounded-full bg-red-600 text-white items-center justify-center"> L </span>
+                                        {/if}
+
                                         <span class="inline-flex px-2 py-1 text-xs font-medium rounded-full {isNoAccountDate(employee.third_party) ? 'bg-[#FFF3CD] text-[#856404]' : employee.third_party ? 'bg-[#CFEED8] text-[#1E9F37]' : 'bg-[#FED9DA] text-[#D7313E]'}">
                                             {isNoAccountDate(employee.third_party) ? 'No account' : employee.third_party ? formatDate(employee.third_party) : 'N/A'}
                                         </span>
@@ -766,6 +804,11 @@
                                         </div>
                                     {:else}
                                         <!-- Display Mode: Date + Pencil Icon -->
+
+                                        {#if employee.email_late}
+                                            <span class="inline-flex w-6 h-6 text-sm font-medium rounded-full bg-red-600 text-white items-center justify-center"> L </span>
+                                        {/if}
+
                                         <span class="inline-flex px-2 py-1 text-xs font-medium rounded-full {isNoAccountDate(employee.email) ? 'bg-[#FFF3CD] text-[#856404]' : employee.email ? 'bg-[#CFEED8] text-[#1E9F37]' : 'bg-[#FED9DA] text-[#D7313E]'}">
                                             {isNoAccountDate(employee.email) ? 'No account' : employee.email ? formatDate(employee.email) : 'N/A'}
                                         </span>
@@ -828,6 +871,11 @@
                                         </div>
                                     {:else}
                                         <!-- Display Mode: Date + Pencil Icon -->
+
+                                        {#if employee.windows_late}
+                                            <span class="inline-flex w-6 h-6 text-sm font-medium rounded-full bg-red-600 text-white items-center justify-center"> L </span>
+                                        {/if}
+
                                         <span class="inline-flex px-2 py-1 text-xs font-medium rounded-full {isNoAccountDate(employee.windows) ? 'bg-[#FFF3CD] text-[#856404]' : employee.windows ? 'bg-[#CFEED8] text-[#1E9F37]' : 'bg-[#FED9DA] text-[#D7313E]'}">
                                             {isNoAccountDate(employee.windows) ? 'No account' : employee.windows ? formatDate(employee.windows) : 'N/A'}
                                         </span>
@@ -891,6 +939,16 @@
                                         </button>
                                     {/if}
                                 </div>
+                            </td>
+
+                            <!-- Toggle Checkbox -->
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                            <input
+                                type="checkbox"
+                                class="w-5 h-5 text-green-600 rounded border-gray-300 focus:ring-green-500"
+                                checked={employee.processed_date_time !== null}
+                                on:change={() => toggleStatus(employee)}
+                            />
                             </td>
 
                             <!-- Remarks Field -->
