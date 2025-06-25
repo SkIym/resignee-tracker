@@ -142,6 +142,9 @@ def is_late(resigned: str, deac: str | None, hr: str, acc: Account) -> bool:
                 # If account was deactivated the day after last day of employee
                 if (resigned_d + timedelta(days=1)) == deac_d: return False
 
+                # If account was deactivated on or before last day
+                if (resigned_d >= deac_d): return False
+
                 # Else, late
                 return True
             
