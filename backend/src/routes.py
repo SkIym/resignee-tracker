@@ -3,8 +3,8 @@ load_dotenv()
 
 # list endpoints here
 from fastapi import APIRouter, HTTPException, Body, Path, Query
-from schemas import ResigneeDisplay, ResigneeCreate
-from services import parse_resignee_text, generate_csv_report, generate_xls_report, decode_deactivation_date
+from schemas import ResigneeDisplay, ResigneeCreate, Account
+from services import parse_resignee_text, generate_csv_report, generate_xls_report, decode_deactivation_date, is_late
 from datetime import datetime
 from supabase_client import supabase
 from io import StringIO, BytesIO
@@ -76,7 +76,11 @@ async def add_resignees(resignees: str = Body(..., media_type="text/plain")):
                 third_party=None,
                 email=None,
                 windows=None,
-                remarks=None
+                remarks=None,
+                um_late=False,
+                third_party_late=False,
+                email_late=False,
+                windows_late=False
             ))
 
         return cleaned_entries
@@ -89,9 +93,13 @@ async def add_resignees(resignees: str = Body(..., media_type="text/plain")):
 @router.get("")
 async def get_all_unprocessed_resignees():
     try:
+        # response = supabase.table("ResignedEmployees") \
+        #     .select("*") \
+        #     .or_("um_date_deac.is.null, tp_date_deac.is.null, email_date_deac.is.null, windows_date_deac.is.null") \
+        #     .execute()
+
         response = supabase.table("ResignedEmployees") \
             .select("*") \
-            .or_("um_date_deac.is.null, tp_date_deac.is.null, email_date_deac.is.null, windows_date_deac.is.null") \
             .execute()
         
         to_display = response.data
@@ -111,6 +119,13 @@ async def get_all_unprocessed_resignees():
                 department = decrypt_field(entry['department']) if entry.get('department') else ""
                 remarks = decrypt_field(entry['remarks']) if entry.get('remarks') else ""
 
+                um = entry.get('um_date_deac', "")
+                third_party = entry.get('tp_date_deac', "")
+                email = entry.get('email_date_deac', "")
+                windows = entry.get('windows_date_deac', "")
+                last_day = entry.get('last_day', "")
+                date_hr_emailed = entry.get('date_hr_emailed', "")
+
                 cleaned_entries.append(ResigneeDisplay(
                     employee_no=employee_no,
                     date_hired=entry.get('date_hired', ""),
@@ -119,13 +134,17 @@ async def get_all_unprocessed_resignees():
                     position_title=position_title,
                     rank=rank,
                     department=department,
-                    last_day=entry.get('last_day', ""),
-                    date_hr_emailed=entry.get('date_hr_emailed', ""),
-                    um=entry.get('um_date_deac', ""),
-                    third_party=entry.get('tp_date_deac', ""),
-                    email=entry.get('email_date_deac', ""),
-                    windows=entry.get('windows_date_deac', ""),
-                    remarks=remarks
+                    last_day=last_day,
+                    date_hr_emailed=date_hr_emailed,
+                    um=um,
+                    third_party=third_party,
+                    email=email,
+                    windows=windows,
+                    remarks=remarks,
+                    um_late=is_late(last_day, um, date_hr_emailed, Account.UM),
+                    third_party_late=is_late(last_day, third_party, date_hr_emailed, Account.TP),
+                    email_late=is_late(last_day, email, date_hr_emailed, Account.EM),
+                    windows_late=is_late(last_day, windows, date_hr_emailed, Account.WN),
                 ))
             except Exception as inner_e:
                 print("Error decrypting entry:", entry)
@@ -150,7 +169,7 @@ async def edit_employee_last_day(
     try:
         employee_no_hash = hash_employee_no(employee_no)
         response = supabase.table("ResignedEmployees") \
-            .update({"last_day": last_day}) \
+            .update({"last_day": last_day})  \
             .eq("employee_no_hash", employee_no_hash) \
             .execute()
         
@@ -350,39 +369,39 @@ async def get_report(start_date: str, end_date: str, format: str = Query(default
         raise HTTPException(status_code=500, detail=str(e))
     
 # Endpoint to mark resignation entry as processed (will now not be returned to client )
-# @router.put("/{employee_no}/process")
-# async def mark_resignee_processed(employee_no: str = Path(...)):
-#     try:
-#         now = datetime.now().isoformat()
-#         employee_no_hash = hash_employee_no(employee_no)
-#         response = supabase.table("ResignedEmployees") \
-#             .update({"processed_date_time": now}) \
-#             .eq("employee_no_hash", employee_no_hash) \
-#             .execute()
-#         if response.data and len(response.data) > 0:
-#             return {"message": f"Employee {employee_no} marked as processed.", "processed_date_time": now}
-#         else:
-#             raise HTTPException(status_code=404, detail="Employee not found")
-#     except Exception as e:
-#         raise HTTPException(status_code=400, detail=str(e))
+@router.put("/{employee_no}/process")
+async def mark_resignee_processed(employee_no: str = Path(...)):
+    try:
+        now = datetime.now().isoformat()
+        employee_no_hash = hash_employee_no(employee_no)
+        response = supabase.table("ResignedEmployees") \
+            .update({"processed_date_time": now}) \
+            .eq("employee_no_hash", employee_no_hash) \
+            .execute()
+        if response.data and len(response.data) > 0:
+            return {"message": f"Employee {employee_no} marked as processed.", "processed_date_time": now}
+        else:
+            raise HTTPException(status_code=404, detail="Employee not found")
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
 
 
-# @router.put("/{employee_no}/unprocess")
-# async def unmark_resignee_processed(
-#     employee_no: str = Path(..., description="Employee number to unmark as processed")
-# ):
-#     """
-#     Unmark a resignee as processed by setting the processed_date_time to None.
-#     """
-#     try:
-#         employee_no_hash = hash_employee_no(employee_no)
-#         response = supabase.table("ResignedEmployees") \
-#             .update({"processed_date_time": None}) \
-#             .eq("employee_no_hash", employee_no_hash) \
-#             .execute()
-#         if response.data and len(response.data) > 0:
-#             return {"message": f"Employee {employee_no} unmarked as processed."}
-#         else:
-#             raise HTTPException(status_code=404, detail="Employee not found")
-#     except Exception as e:
-#         raise HTTPException(status_code=400, detail=str(e))
+@router.put("/{employee_no}/unprocess")
+async def unmark_resignee_processed(
+    employee_no: str = Path(..., description="Employee number to unmark as processed")
+):
+    """
+    Unmark a resignee as processed by setting the processed_date_time to None.
+    """
+    try:
+        employee_no_hash = hash_employee_no(employee_no)
+        response = supabase.table("ResignedEmployees") \
+            .update({"processed_date_time": None}) \
+            .eq("employee_no_hash", employee_no_hash) \
+            .execute()
+        if response.data and len(response.data) > 0:
+            return {"message": f"Employee {employee_no} unmarked as processed."}
+        else:
+            raise HTTPException(status_code=404, detail="Employee not found")
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))

@@ -1,5 +1,5 @@
 from pydantic import BaseModel
-
+from enum import Enum
 class ResigneeDisplay(BaseModel):
     employee_no: str
     date_hired: str
@@ -15,6 +15,10 @@ class ResigneeDisplay(BaseModel):
     email: str | None
     windows: str | None
     remarks: str | None
+    um_late: bool
+    third_party_late: bool
+    email_late: bool
+    windows_late: bool
 
 class ResigneeCreate(BaseModel):
     employee_no: str
@@ -27,3 +31,9 @@ class ResigneeCreate(BaseModel):
     rank: str
     department: str 
     last_day: str
+
+class Account(Enum):
+    UM = 1
+    TP = 2
+    EM = 3
+    WN = 4
