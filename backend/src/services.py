@@ -62,38 +62,44 @@ def generate_xls_report(file: BytesIO, data: Sequence[Mapping[str, Any]]) -> Non
     worksheet.write_row(0, 0, headers, header_format)
 
     i = 1
+    try:
+        for entry in data:
+            
+            last_day = entry['Last day with AUB']
+            hr = entry['Date HR Emailed']
+            um = entry['Batch Deactivation from UM']
+            tp = entry['3rd party systems/apps']
+            em = entry['E-mails']
+            wn = entry['Windows']
 
-    for entry in data:
-        
-        last_day = entry['Last day with AUB']
-        hr = entry['Date HR Emailed']
-        um = entry['Batch Deactivation from UM']
-        tp = entry['3rd party systems/apps']
-        em = entry['E-mails']
-        wn = entry['Windows']
+            details: list[Any] = [entry['Employee no.'],
+            entry['Date hired'],
+            entry['Cost center'],
+            entry['Last Name'],
+            entry['First Name'], 
+            entry['Middle Name'],
+            entry['Position Title'],
+            entry['Rank'],
+            entry['Department'],
+            last_day,
+            hr,
+            um,
+            tp,
+            em,
+            wn,
+            entry['Remarks']]
+            worksheet.write_row(i, 0, details)
 
-        details: list[Any] = [entry['Employee no.'],
-        entry['Date hired'],
-        entry['Cost center'],
-        entry['Last Name'],
-        entry['First Name'], 
-        entry['Middle Name'],
-        entry['Position Title'],
-        entry['Rank'],
-        entry['Department'],
-        last_day,
-        hr,
-        um,
-        tp,
-        em,
-        wn,
-        entry['Remarks']]
-        worksheet.write_row(i, 0, details)
+            for col, (deac, acc) in enumerate([(um, Account.UM), (tp, Account.TP), (em, Account.EM), (wn, Account.WN)], 11):
+                if decode_deactivation_date(deac) == "No Existing Account":
+                    worksheet.write(i, col, "No Existing Account")
+                    continue
+                if is_late(last_day, deac, hr, acc):
+                    worksheet.write(i, col, deac, late_format)
+            i += 1
 
-        for col, (deac, acc) in enumerate([(um, Account.UM), (tp, Account.TP), (em, Account.EM), (wn, Account.WN)], 11):
-            if is_late(last_day, deac, hr, acc):
-                worksheet.write(i, col, deac, late_format)
-        i += 1
+    except Exception as e:
+        print(e)
 
     worksheet.autofit()
     workbook.close()
