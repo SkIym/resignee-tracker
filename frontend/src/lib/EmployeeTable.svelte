@@ -668,7 +668,7 @@
                                                     editingValue = 'NO_ACCOUNT';
                                                     saveEdit(employee);
                                                 }}
-                                                class="text-xs border border-gray-300 hover:bg-gray-300 text-gray-700 w-24 rounded px-2 py-1 transition-colors"
+                                                class="text-xs border border-gray-300 hover:bg-gray-300 text-gray-700 w-21.5 rounded px-2 py-1 transition-colors"
                                                 title="Mark as no existing account"
                                             >
                                                 No account
@@ -735,7 +735,7 @@
                                                     editingValue = 'NO_ACCOUNT';
                                                     saveEdit(employee);
                                                 }}
-                                                class="text-xs border border-gray-300 hover:bg-gray-300 text-gray-700 w-24 rounded px-2 py-1 transition-colors"
+                                                class="text-xs border border-gray-300 hover:bg-gray-300 text-gray-700 w-21.5 rounded px-2 py-1 transition-colors"
                                                 title="Mark as no existing account"
                                             >
                                                 No account
@@ -802,7 +802,7 @@
                                                     editingValue = 'NO_ACCOUNT';
                                                     saveEdit(employee);
                                                 }}
-                                                class="text-xs border border-gray-300 hover:bg-gray-300 text-gray-700 w-24 rounded px-2 py-1 transition-colors"
+                                                class="text-xs border border-gray-300 hover:bg-gray-300 text-gray-700 w-21.5 rounded px-2 py-1 transition-colors"
                                                 title="Mark as no existing account"
                                             >
                                                 No account
@@ -869,7 +869,7 @@
                                                     editingValue = 'NO_ACCOUNT';
                                                     saveEdit(employee);
                                                 }}
-                                                class="text-xs border border-gray-300 hover:bg-gray-300 text-gray-700 w-24 rounded px-2 py-1 transition-colors"
+                                                class="text-xs border border-gray-300 hover:bg-gray-300 text-gray-700 w-21.5 rounded px-2 py-1 transition-colors"
                                                 title="Mark as no existing account"
                                             >
                                                 No account
