@@ -171,7 +171,7 @@
         } catch (error) {
             console.error('Error updating field:', error);
             const msg = error instanceof Error ? error.message : 'Unknown error';
-            alert(`Failed to update field: ${msg}`);
+            toast.error(`Failed to update field: ${msg}`);
         } finally {
             editingEmployeeId = null;
             editingValue = '';

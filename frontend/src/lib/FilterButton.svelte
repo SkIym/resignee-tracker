@@ -20,7 +20,13 @@
     "Rank",
     "Department",
     "Last Day",
-    "Status"
+    "Batch Deactivation",
+    "3rd Party Systems",
+    "Emails",
+    "Windows",
+    "HR Email",
+    "Status",
+    "Remarks"
   ];
 
   function toggleDropdown() {
@@ -36,7 +42,7 @@
 
 
   function addFilter() {
-    if (selectedField === "Date Hired" || selectedField === "Last Day") {
+    if (["Date Hired", "Last Day", "Batch Deactivation", "3rd Party Systems", "Emails", "Windows", "HR Email"].includes(selectedField)) {
       if (dateStart && dateEnd) {
         const formattedStart = new Date(dateStart).toLocaleDateString('en-US', {
         month: '2-digit',
@@ -99,10 +105,12 @@
 
       
     if (filter.field === "Employee No." || filter.field === "Cost Center") {
-      return fieldValue === filterValue;
+        const normalizedEmp = fieldValue.replace(/^0+/, '');       
+        const normalizedInput = filterValue.replace(/^0+/, '');    
+        return normalizedEmp === normalizedInput;
     }
 
-    if (filter.field === "Date Hired" || filter.field === "Last Day") {
+    if (["Date Hired", "Last Day", "Batch Deactivation", "3rd Party Systems", "Emails", "Windows", "HR Email"].includes(filter.field)) {
         const [start, end] = filter.value.split(' to ');
         try {
           const date = parseISO(emp[key]);
@@ -133,7 +141,13 @@ function mapFieldToKey(field: string): string {
     "Rank": "rank",
     "Department": "department",
     "Last Day": "last_day",
-    "Status": "processed_date_time"
+    "Batch Deactivation": "um",
+    "3rd Party Systems": "third_party",
+    "Emails": "email",
+    "Windows": "windows",
+    "HR Email": "date_hr_emailed",
+    "Status": "processed_date_time",
+    "Remarks": "remarks"
   };
   return map[field] || field;
 }
@@ -163,7 +177,7 @@ function mapFieldToKey(field: string): string {
       </div>
       <hr class="divider" />
 
-  {#if selectedField === "Date Hired" || selectedField === "Last Day"}
+  {#if ["Date Hired", "Last Day", "Batch Deactivation", "3rd Party Systems", "Emails", "Windows", "HR Email"].includes(selectedField)}
     <div class="date-range">
         <input
           type="date"
@@ -224,19 +238,20 @@ function mapFieldToKey(field: string): string {
     </div>
 
 
-    {:else}
+    {:else if selectedField}
       <div class="filter-input">
         <input
-        type="text"
-        bind:value={inputValue}
-        placeholder={`Enter ${selectedField}...`}
-        class="w-full px-2 py-1 border rounded mb-0.25"
-        on:keydown={(e) => {
-          if (e.key === 'Enter') {
-            addFilter();
-          }
-        }}
-      />
+          type="text"
+          bind:value={inputValue}
+          placeholder={`Enter ${selectedField}...`}
+          class="w-full px-2 py-1 border rounded mb-0.25"
+          on:keydown={(e) => {
+            if (e.key === 'Enter') {
+              addFilter();
+              isOpen = false;
+            }
+          }}
+        />
       </div>
     {/if}
 
