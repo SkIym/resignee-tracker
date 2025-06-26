@@ -336,11 +336,8 @@
 <Toaster />
 
 <svelte:window on:keydown={handleKeydown} />
-
-<div class="relative">
-    <!-- Main scrollable table container -->
-    <div class="overflow-hidden max-h-screen" bind:this={tableContainer}>
-        <div class="overflow-x-auto overflow-y-auto hide-main-scrollbar max-h-screen" bind:this={scrollWrapper}>
+<div class="outer-wrapper">
+    <div class="table-wrapper rounded-md">
             <table class="min-w-full text-xs text-left text-gray-700 bg-white">
                     <thead class="bg-gray-100 text-xs text-gray-500 uppercase sticky top-0 z-20">
                         <tr>
@@ -1022,7 +1019,6 @@
                     <h3 class="mt-2 text-xs font-medium text-gray-900">No employees found</h3>
                     </div>
                 {/if}
-            </div>
         </div>
     
     <!-- Always Visible Sticky Scrollbar at Bottom -->
@@ -1032,41 +1028,16 @@
 </div>
 
 <style>
-    /* Hide the main table scrollbar but keep sticky scrollbar visible */
-    .hide-main-scrollbar::-webkit-scrollbar {
-        display: none;
-    }
-    .hide-main-scrollbar {
-        -ms-overflow-style: none;
-        scrollbar-width: none;
-    }
-
-    /* Always visible sticky scrollbar */
-    .sticky-scrollbar-container {
-        position: sticky;
-        bottom: 0;
-        left: 0;
-        right: 0;
-        overflow-x: auto;
-        overflow-y: hidden;
+    .table-wrapper {
+        overflow-y: scroll;
+        overflow-x: scroll;
+        height: fit-content;
+        max-height: 66.4vh;
+        padding-bottom: 20px;
     }
 
-    /* Show scrollbar for sticky container */
-    .sticky-scrollbar-container::-webkit-scrollbar {
-        height: 8px;
-    }
-
-    .sticky-scrollbar-container::-webkit-scrollbar-track {
-        background: #f1f1f1;
-        border-radius: 4px;
-    }
-
-    .sticky-scrollbar-container::-webkit-scrollbar-thumb {
-        background: #c1c1c1;
-        border-radius: 4px;
-    }
-
-    .sticky-scrollbar-container::-webkit-scrollbar-thumb:hover {
-        background: #a8a8a8;
+    table {
+        border-collapse: separate;
+        border-spacing: 0px;      
     }
 </style>

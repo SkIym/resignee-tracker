@@ -252,7 +252,6 @@
     </div>
 
     <!-- Table Container -->
-    <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
       {#if loading}
         <div class="flex items-center justify-center py-12">
           <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
@@ -265,7 +264,6 @@
           </div>
         </div>
       {:else}
-        <div class="overflow-auto max-h-[500px]">
           <EmployeeTable
             employees={filteredEmployees}
             onstatustoggle={handleStatusToggle}
@@ -274,9 +272,7 @@
                 loadEmployees();
             }}
           />
-        </div>
       {/if}
-    </div>
 
     <!-- Results Info -->
     {#if !loading && !error}
