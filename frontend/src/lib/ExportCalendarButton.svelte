@@ -89,7 +89,7 @@
     </button>
 
     {#if showDropdown}
-      <ul class="absolute right-0 mt-1 w-36 bg-white border border-gray-300 rounded shadow-md z-10 text-sm font-[Open_Sans]">
+      <ul class="absolute right-0 mt-1 w-36 z-50 bg-white border border-gray-300 rounded-md shadow-md z-10 text-sm font-[Open_Sans]">
         <li on:click={() => handleExport('csv')} class="px-4 py-2 hover:bg-gray-100 cursor-pointer">
           Export as CSV
         </li>
