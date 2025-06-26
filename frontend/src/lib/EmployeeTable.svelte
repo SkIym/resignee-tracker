@@ -13,11 +13,11 @@
     let editingValue: string = '';
 
     // Sticky scrollbar elements
-    let tableContainer: HTMLDivElement;
-    let stickyScrollbar: HTMLDivElement;
+    let tableContainer: HTMLDivElement | null = null;
+    let stickyScrollbar: HTMLDivElement | null = null;
     let updateScrollbarWidth: () => void;
     let observer: MutationObserver | null = null;
-    let scrollWrapper: HTMLDivElement;
+    let scrollWrapper: HTMLDivElement | null = null;
 
     function handleSort(field: 'name' | 'employee_no' | 'department' | 'position_title' | 'date_hired' | 'last_day' | 'um' | 'third_party' | 'email' | 'windows' | 'date_hr_emailed' ) {
         if (sortField == field) {
@@ -155,22 +155,20 @@
             const data = await res.json()
             const idx = employees.findIndex(emp => emp.employee_no === employee.employee_no);
             if (idx !== -1) {
-
                 if (trimmed === 'NO_ACCOUNT') {
-                    employees[idx][key] = '1900-01-01';
-                } else {
-                    employees[idx][key] = new Date(trimmed).toISOString();
-                    if ((key == 'um') || (key == 'third_party') || (key == 'email') || (key == 'windows')) {
-                        const late_key = key.concat("_late")
-                        employees[idx][late_key] = data.late
+                    if (key in employees[idx]) {
+                        (employees[idx] as any)[key] = '1900-01-01';
                     }
-                }
-                employees = [...employees];
-                // toast.success(successMessage);
-                
-                // Trigger a refetch of employee data to get updated late flags
-                if (onEmployeeUpdate && (key == "last_day" || key == "date_hr_emailed")) {
-                    onEmployeeUpdate();
+                } else {
+                    if (key in employees[idx]) {
+                        (employees[idx] as any)[key] = new Date(trimmed).toISOString();
+                    }
+                    if ((key == 'um') || (key == 'third_party') || (key == 'email') || (key == 'windows')) {
+                        const late_key = key.concat("_late") as keyof Employee;
+                        if (late_key in employees[idx]) {
+                            (employees[idx] as any)[late_key] = data.late;
+                        }
+                    }
                 }
             }
 
