@@ -1,9 +1,9 @@
 from fastapi import APIRouter, HTTPException, Form
 from datetime import datetime
-from supabase_client import supabase
+from src.supabase_client import supabase
 from fastapi.responses import Response
 from datetime import timedelta
-from crypto_utils import encrypt_field, decrypt_field
+from src.crypto_utils import encrypt_field, decrypt_field
 import jwt
 import os
 from fastapi.requests import Request
