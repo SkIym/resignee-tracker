@@ -160,6 +160,8 @@
                 if (trimmed === 'NO_ACCOUNT') {
                     if (key in employees[idx]) {
                         (employees[idx] as any)[key] = '1900-01-01';
+                        const late_key = key.concat("_late") as keyof Employee;
+                        (employees[idx] as any)[late_key] = false
                     }
                 } else {
                     if (key in employees[idx]) {
