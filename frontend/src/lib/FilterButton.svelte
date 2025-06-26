@@ -185,7 +185,6 @@ function mapFieldToKey(field: string): string {
           on:change={() => {
             if (dateStart && dateEnd) {
               addFilter();
-              isOpen = false;
             }
           }}
         />
@@ -195,7 +194,6 @@ function mapFieldToKey(field: string): string {
           on:change={() => {
             if (dateStart && dateEnd) {
               addFilter();
-              isOpen = false;
             }
           }}
         />
@@ -248,7 +246,6 @@ function mapFieldToKey(field: string): string {
           on:keydown={(e) => {
             if (e.key === 'Enter') {
               addFilter();
-              isOpen = false;
             }
           }}
         />
