@@ -58,7 +58,7 @@ async def add_resignees(resignees: str = Body(..., media_type="text/plain")):
                 "department": encrypt_field(entry.department),
                 "date_hired": datetime.strptime(entry.date_hired, "%m/%d/%Y").strftime("%Y-%m-%d"),
                 "last_day": datetime.strptime(entry.last_day, "%m/%d/%Y").strftime("%Y-%m-%d"),
-                "date_hr_emailed": datetime.now().strftime("%Y-%m-%d"),
+                "date_hr_emailed": datetime.now().isoformat(),
                 "um_date_deac": None,
                 "tp_date_deac": None, 
                 "email_date_deac": None, 
@@ -98,6 +98,7 @@ async def get_all_unprocessed_resignees():
         response = supabase.table("ResignedEmployees") \
             .select("*") \
             .is_("processed_date_time", "null") \
+            .order("date_hr_emailed", desc=True) \
             .execute()
         
         to_display = response.data
