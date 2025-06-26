@@ -207,7 +207,7 @@
         try {
             const trimmedRemarks = editingValue.trim();
 
-            const res = await fetch(`https://localhost:8000/resignees/${employee.employee_no}/remarks`, {
+            const res = await fetch(`${BASE_URL}/resignees/${employee.employee_no}/remarks`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'text/plain',
