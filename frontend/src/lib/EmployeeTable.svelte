@@ -555,7 +555,7 @@
                             </th>
 
                             <!---------- Remarks ---------->
-                            <th class="px-6 py-3 text-left text-[11px] font-bold text-gray-500 uppercase tracking-wider">
+                            <th class="px-6 py-3 text-left text-[11px] font-bold text-gray-500 uppercase tracking-wider w-80 max-w-80">
                                 Remarks
                             </th>
                             
@@ -949,7 +949,7 @@
                             </td>
 
                             <!-- Toggle Checkbox -->
-                            <td class="pl-5 py-4 whitespace-nowrap text-xs text-gray-500 text-center align-middle">
+                            <td class="pl-5 py-4 whitespace-nowrap text-xs text-gray-500 text-center align-middle z-10">
                                 {#if isEmployeeComplete(employee)}
                                     <!-- Normal checkbox when all details are complete -->
                                     <input
@@ -961,7 +961,7 @@
                                 {:else}
                                     <!-- Disabled gray checkbox when details are incomplete -->
                                     <div 
-                                        class="w-4 h-4 bg-gray-400 border-2 border-gray-400 rounded cursor-not-allowed relative align-middle inline-block"
+                                        class="w-4 h-4 bg-gray-400 border-2 border-gray-400 rounded cursor-not-allowed align-middle inline-block"
                                         title="Incomplete details"
                                     >
                                     </div>
@@ -969,19 +969,19 @@
                             </td>
 
                             <!-- Remarks Field -->
-                            <td class="px-3 py-2 whitespace-normal text-xs text-gray-900">
-                                <div class="flex items-center gap-2">
+                            <td class="px-3 py-2 text-xs text-gray-900 w-80 max-w-80">
+                                <div class="flex items-start gap-2">
                                     {#if editingEmployeeId?.id === employee.employee_no && editingEmployeeId?.key === 'remarks'}
                                         <!-- Edit Mode: Text Field + Check Icon -->
                                         <textarea
                                             bind:value={editingValue}
                                             rows="3"
-                                            class="text-xs border border-gray-300 rounded px-2 py-1 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 h-20 w-40"
+                                            class="text-xs border border-gray-300 rounded px-2 py-1 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 h-20 w-28"
                                         ></textarea>
                                         <button
                                             type="button"
                                             on:click={() => saveRemarks(employee)}
-                                            class="text-green-600 hover:text-green-800 transition-colors"
+                                            class="text-green-600 hover:text-green-800 transition-colors flex-shrink-0 mt-1"
                                             title="Save changes"
                                         >
                                             <!-- Check Icon -->
@@ -990,15 +990,15 @@
                                             </svg>
                                         </button>
                                     {:else}
-                                        <!-- Display Mode: Date + Pencil Icon -->
-                                        <span class="flex-1">
+                                        <!-- Display Mode: Text + Pencil Icon -->
+                                        <span class="flex-1 text-xs break-all hyphens-auto">
                                             {String(employee.remarks || 'N/A')}
                                         </span>
 
                                         <button
                                             type="button"
                                             on:click={() => startEditingRemarks(employee)}
-                                            class="text-gray-400 hover:text-gray-600 transition-colors"
+                                            class="text-gray-400 hover:text-gray-600 transition-colors flex-shrink-0 mt-1"
                                             title="Edit remarks"
                                         >
                                             <!-- Pencil/Edit Icon -->
@@ -1038,10 +1038,13 @@
         height: fit-content;
         max-height: 66.4vh;
         padding-bottom: 20px;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        border-radius: 0.5rem;
     }
 
     table {
         border-collapse: separate;
-        border-spacing: 0px;      
+        border-spacing: 0px;
+        border-radius: 0.5rem;
     }
 </style>
