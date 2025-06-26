@@ -3,8 +3,9 @@
   let endDate = '';
   let exportConfirmed = false;
   import { BASE_URL } from "../constants";
+  let showDropdown = false;
 
-  async function handleExportClick() {
+  async function handleExport(format: 'csv' | 'xlsx') {
     if (!startDate || !endDate) {
       alert('Please select both a start and end date.');
       return;
@@ -14,8 +15,8 @@
       const isoStart = new Date(startDate).toISOString();
       const isoEnd = new Date(endDate).toISOString();
 
-      const res = await fetch(`${BASE_URL}/resignees/report?start_date=${isoStart}&end_date=${isoEnd}`, {
-        credentials: 'include' 
+      const res = await fetch(`${BASE_URL}/resignees/report?start_date=${isoStart}&end_date=${isoEnd}&format=${format}`, {
+        credentials: 'include'
       });
   
       if (!res.ok) throw new Error('Failed to fetch report from backend');
@@ -25,7 +26,7 @@
 
       const a = document.createElement('a');
       a.href = url;
-      a.download = `resignee_report_${startDate}_to_${endDate}.csv`;
+      a.download = `resignee_report_${startDate}_to_${endDate}.${format}`;
       a.click();
       URL.revokeObjectURL(url);
 
@@ -41,11 +42,21 @@
     endDate = '';
     exportConfirmed = false;
   }
+  
+  function toggleDropdown() {
+    showDropdown = !showDropdown;
+  }
+
+  function closeDropdownOnBlur() {
+    setTimeout(() => {
+      showDropdown = false;
+    }, 150); // short delay to allow click event to register
+  }
 
 
 </script>
 
-<div class="flex items-center gap-2">
+<div class="flex items-center gap-2 relative">
   <!-- Calendar -->
   <label for="start-date" class="text-sm text-gray-600 font-[Open_Sans]">From:</label>
   <input
@@ -64,16 +75,41 @@
   />
 
 
-  <!-- Export Button -->
-  <button
-    on:click={handleExportClick}
-    class={`flex items-center gap-2 px-4.25 py-1.75 rounded-md text-sm font-[Open_Sans] hover:bg-blue-600 transition ${
-      exportConfirmed ? 'bg-blue-500 text-white' : 'bg-blue-500 text-white'
-    }`}
-  >
-    <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5m-13.5-9L12 3m0 0 4.5 4.5M12 3v13.5" />
-    </svg>
-    Export
-  </button>
+  <!-- Export Button w/ Dropdown -->
+  <div class="relative" on:blur={closeDropdownOnBlur}>
+    <button
+      on:click={toggleDropdown}
+      class={`flex items-center gap-2 px-4.25 py-1.75 rounded-md text-sm font-[Open_Sans] hover:bg-blue-600 transition ${
+        exportConfirmed ? 'bg-blue-500 text-white' : 'bg-blue-500 text-white'
+      }`}
+    >
+      <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5m-13.5-9L12 3m0 0 4.5 4.5M12 3v13.5" />
+      </svg>
+      Export
+    </button>
+
+    {#if showDropdown}
+      <ul class="absolute right-0 mt-1 w-36 z-50 bg-white border border-gray-300 rounded-md shadow-md z-10 text-sm font-[Open_Sans]">
+        <li>
+          <button
+            type="button"
+            on:click={() => handleExport('csv')}
+            class="w-full text-left px-4 py-2 hover:bg-gray-100"
+          >
+            Export as CSV
+          </button>
+        </li>
+        <li>
+          <button
+            type="button"
+            on:click={() => handleExport('xlsx')}
+            class="w-full text-left px-4 py-2 hover:bg-gray-100"
+          >
+            Export as XLSX
+          </button>
+        </li>
+      </ul>
+    {/if}
+  </div>
 </div>

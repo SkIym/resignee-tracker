@@ -5,6 +5,7 @@ from fastapi.responses import Response
 from fastapi.responses import JSONResponse
 from src.services import verify_token
 from src.routes import router
+from src.auth import auth_router
 from typing import Callable, Awaitable
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
@@ -24,6 +25,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+app.include_router(auth_router)
 app.include_router(router)
 
 @app.middleware("http")

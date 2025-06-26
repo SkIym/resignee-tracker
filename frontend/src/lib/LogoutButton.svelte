@@ -6,7 +6,7 @@
     try {
       const res = await fetch(`${BASE_URL}/logout`, {
         method: 'POST',
-        credentials: 'include', // <-- Required to send and delete HttpOnly cookies
+        credentials: 'include', 
       });
 
       if (!res.ok) {

@@ -184,7 +184,6 @@
     }
   }
 
-  // Function to handle status toggle from EmployeeTable
   async function handleStatusToggle(event: { detail: { employee: Employee, action?: string } }) {
     const { employee, action } = event.detail;
     
@@ -242,7 +241,7 @@
   <div class="max-w-7xl mx-auto">
     <!-- Header Controls -->
     <div class="flex flex-wrap items-center justify-between gap-4 mb-6">
-      <img src="/assets/aub-logo-2.png" width="45"/>
+      <img src="/assets/aub-logo-2.png" alt="AUB logo" width="45"/>
       <div class="flex items-center gap-4 flex-1">
         <SearchBar onsearch={handleSearch} />
       </div>
@@ -253,7 +252,6 @@
     </div>
 
     <!-- Table Container -->
-    <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
       {#if loading}
         <div class="flex items-center justify-center py-12">
           <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
@@ -266,11 +264,15 @@
           </div>
         </div>
       {:else}
-        <div class="overflow-auto max-h-[500px]">
-          <EmployeeTable employees={filteredEmployees} onstatustoggle={handleStatusToggle} />
-        </div>
+          <EmployeeTable
+            employees={filteredEmployees}
+            onstatustoggle={handleStatusToggle}
+            onEmployeeUpdate={() => {
+                // Refetch your employee data here
+                loadEmployees();
+            }}
+          />
       {/if}
-    </div>
 
     <!-- Results Info -->
     {#if !loading && !error}

@@ -30,6 +30,7 @@ a = Analysis(
         'src.supabase_client',
         'src.services',
         'src.schemas',
+        'src.auth',
         # Add any other imports your routes use
     ],
     hookspath=['.'],  # Add path to your hooks if any

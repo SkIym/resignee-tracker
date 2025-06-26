@@ -2,27 +2,26 @@ from dotenv import load_dotenv
 load_dotenv()
 
 # list endpoints here
-from fastapi import APIRouter, HTTPException, Body, Path, Form
-from src.schemas import ResigneeDisplay, ResigneeCreate
-from src.services import parse_resignee_text, generate_report
-from datetime import datetime
+from fastapi import APIRouter, HTTPException, Body, Path, Query
+from src.schemas import ResigneeDisplay, ResigneeCreate, Account, EditDate
+from src.services import parse_resignee_text, generate_csv_report, generate_xls_report, is_late
+from datetime import datetime, timedelta
 from src.supabase_client import supabase
-from io import StringIO
+from io import StringIO, BytesIO
 from fastapi.responses import Response
-from datetime import timedelta
 from src.crypto_utils import encrypt_field, decrypt_field
-import jwt
-import os
 import hashlib
-from fastapi.requests import Request
-    
-router = APIRouter()
+
+router = APIRouter(
+    prefix="/resignees",
+    tags=["resignee"]
+)
 
 def hash_employee_no(employee_no: str) -> str:
     return hashlib.sha256(employee_no.encode()).hexdigest()
 
 # Endpoint accepting raw text (details) of resignees; will parse and add data to database
-@router.post("/resignees", response_model=list[ResigneeDisplay])
+@router.post("", response_model=list[ResigneeDisplay])
 async def add_resignees(resignees: str = Body(..., media_type="text/plain")):
     """
     Handle raw resignee details and return parsed data per employee.
@@ -59,6 +58,12 @@ async def add_resignees(resignees: str = Body(..., media_type="text/plain")):
                 "department": encrypt_field(entry.department),
                 "date_hired": datetime.strptime(entry.date_hired, "%m/%d/%Y").strftime("%Y-%m-%d"),
                 "last_day": datetime.strptime(entry.last_day, "%m/%d/%Y").strftime("%Y-%m-%d"),
+                "date_hr_emailed": datetime.now().strftime("%Y-%m-%d"),
+                "um_date_deac": None,
+                "tp_date_deac": None, 
+                "email_date_deac": None, 
+                "windows_date_deac": None,
+                "remarks": None,
                 "processed_date_time": None
             }
             supabase.table("ResignedEmployees").insert(encrypted_data).execute()
@@ -66,7 +71,17 @@ async def add_resignees(resignees: str = Body(..., media_type="text/plain")):
             # For formatting the name field in the response only
             cleaned_entries.append(ResigneeDisplay(
                 **entry.model_dump(exclude={'last_name', 'first_name', 'middle_name'}),
-                name=entry.last_name + ", " + entry.first_name + " " + entry.middle_name
+                name=entry.last_name + ", " + entry.first_name + " " + entry.middle_name,
+                date_hr_emailed=datetime.now().strftime("%m-%d-%Y"),
+                um=None,
+                third_party=None,
+                email=None,
+                windows=None,
+                remarks=None,
+                um_late=False,
+                third_party_late=False,
+                email_late=False,
+                windows_late=False
             ))
 
         return cleaned_entries
@@ -76,7 +91,7 @@ async def add_resignees(resignees: str = Body(..., media_type="text/plain")):
     
 
 # Endpoint serving list of unprocessed resignees to client (frontend) 
-@router.get('/resignees')
+@router.get("")
 async def get_all_unprocessed_resignees():
     try:
         response = supabase.table("ResignedEmployees") \
@@ -93,14 +108,13 @@ async def get_all_unprocessed_resignees():
             .gte("processed_date_time", past_day_date) \
             .execute()
 
-        to_display.extend(response.data)      
+        to_display.extend(response.data) 
 
         cleaned_entries: list[ResigneeDisplay] = []
 
         for entry in to_display:
             try:
                 # Print types and values for debugging
-                print("Decrypting entry:", entry)
                 employee_no = decrypt_field(entry['employee_no']) if entry.get('employee_no') else ""
                 last_name = decrypt_field(entry['last_name']) if entry.get('last_name') else ""
                 first_name = decrypt_field(entry['first_name']) if entry.get('first_name') else ""
@@ -109,6 +123,14 @@ async def get_all_unprocessed_resignees():
                 position_title = decrypt_field(entry['position_title']) if entry.get('position_title') else ""
                 rank = decrypt_field(entry['rank']) if entry.get('rank') else ""
                 department = decrypt_field(entry['department']) if entry.get('department') else ""
+                remarks = decrypt_field(entry['remarks']) if entry.get('remarks') else ""
+
+                um = entry.get('um_date_deac', "")
+                third_party = entry.get('tp_date_deac', "")
+                email = entry.get('email_date_deac', "")
+                windows = entry.get('windows_date_deac', "")
+                last_day = entry.get('last_day', "")
+                date_hr_emailed = entry.get('date_hr_emailed', "")
 
                 cleaned_entries.append(ResigneeDisplay(
                     employee_no=employee_no,
@@ -118,7 +140,17 @@ async def get_all_unprocessed_resignees():
                     position_title=position_title,
                     rank=rank,
                     department=department,
-                    last_day=entry.get('last_day', ""),
+                    last_day=last_day,
+                    date_hr_emailed=date_hr_emailed,
+                    um=um,
+                    third_party=third_party,
+                    email=email,
+                    windows=windows,
+                    remarks=remarks,
+                    um_late=is_late(last_day, um, date_hr_emailed, Account.UM),
+                    third_party_late=is_late(last_day, third_party, date_hr_emailed, Account.TP),
+                    email_late=is_late(last_day, email, date_hr_emailed, Account.EM),
+                    windows_late=is_late(last_day, windows, date_hr_emailed, Account.WN),
                     processed_date_time=entry.get('processed_date_time', "")
                 ))
             except Exception as inner_e:
@@ -132,8 +164,246 @@ async def get_all_unprocessed_resignees():
         print("Outer exception:", e)
         raise HTTPException(status_code=400, detail=str(e))
 
+@router.put("/{employee_no}/last_day")    
+async def edit_employee_last_day(
+    employee_no: str = Path(...),
+    last_day: str = Body(..., media_type="text/plain")
+):
+    """
+    Edit an employee's recorded last day.
+    Format: YYYY-MM-DD
+    """
+    try:
+        employee_no_hash = hash_employee_no(employee_no)
+        response = supabase.table("ResignedEmployees") \
+            .update({"last_day": last_day})  \
+            .eq("employee_no_hash", employee_no_hash) \
+            .execute()
+        
+        if response.data and len(response.data) > 0:
+            return {"message": f"Changed employee {employee_no} last day to {last_day}."}
+        else:
+            raise HTTPException(status_code=404, detail="Employee not found")
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.put("/{employee_no}/um", response_model=EditDate)
+async def edit_um_deactivation_date(
+    employee_no: str = Path(...),
+    um_date_deac: str = Body(..., media_type="text/plain")
+):
+    try:
+        employee_no_hash = hash_employee_no(employee_no)
+        response = supabase.table("ResignedEmployees") \
+            .update({"um_date_deac": um_date_deac}) \
+            .eq("employee_no_hash", employee_no_hash) \
+            .execute()
+        
+        if response.data and len(response.data) > 0:
+            emp = response.data[0]
+
+            return EditDate(
+                message = f"Set employee {employee_no} Batch Deactivation from UM date to {um_date_deac}.",
+                date = um_date_deac,
+                late = is_late(emp['last_day'], um_date_deac, emp['date_hr_emailed'], Account.UM)
+            )
+        else:
+            raise HTTPException(status_code=404, detail="Employee not found")
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.put("/{employee_no}/third-party", response_model=EditDate)
+async def edit_tp_deactivation_date(
+    employee_no: str = Path(...),
+    tp_date_deac: str = Body(..., media_type="text/plain")
+):
+    try:
+        employee_no_hash = hash_employee_no(employee_no)
+        response = supabase.table("ResignedEmployees") \
+            .update({"tp_date_deac": tp_date_deac}) \
+            .eq("employee_no_hash", employee_no_hash) \
+            .execute()
+        
+        if response.data and len(response.data) > 0:
+            emp = response.data[0]
+
+            return EditDate(
+                message = f"Set employee {employee_no} 3rd party systems deactivation date to {tp_date_deac}.",
+                date = tp_date_deac,
+                late = is_late(emp['last_day'], tp_date_deac, emp['date_hr_emailed'], Account.TP)
+            )
+
+        else:
+            raise HTTPException(status_code=404, detail="Employee not found")
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.put("/{employee_no}/email", response_model=EditDate)
+async def edit_email_deactivation_date(
+    employee_no: str = Path(...),
+    email_date_deac: str = Body(..., media_type="text/plain")
+):
+    try:
+        employee_no_hash = hash_employee_no(employee_no)
+        response = supabase.table("ResignedEmployees") \
+            .update({"email_date_deac": email_date_deac}) \
+            .eq("employee_no_hash", employee_no_hash) \
+            .execute()
+        
+        if response.data and len(response.data) > 0:
+            emp = response.data[0]
+
+            return EditDate(
+                message = f"Set employee {employee_no} e-mail deactivation date to {email_date_deac}.",
+                date = email_date_deac,
+                late = is_late(emp['last_day'], email_date_deac, emp['date_hr_emailed'], Account.EM)
+            )
+
+        else:
+            raise HTTPException(status_code=404, detail="Employee not found")
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.put("/{employee_no}/windows", response_model=EditDate)
+async def edit_windows_deactivation_date(
+    employee_no: str = Path(...),
+    windows_date_deac: str = Body(..., media_type="text/plain")
+):
+    try:
+        employee_no_hash = hash_employee_no(employee_no)
+        response = supabase.table("ResignedEmployees") \
+            .update({"windows_date_deac": windows_date_deac}) \
+            .eq("employee_no_hash", employee_no_hash) \
+            .execute()
+        
+        if response.data and len(response.data) > 0:
+            emp = response.data[0]
+
+            return EditDate(
+                message = f"Set employee {employee_no} windows return date to {windows_date_deac}.",
+                date = windows_date_deac,
+                late = is_late(emp['last_day'], windows_date_deac, emp['date_hr_emailed'], Account.WN)
+            )
+        else:
+            raise HTTPException(status_code=404, detail="Employee not found")
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.put("/{employee_no}/date_hr_emailed")
+async def edit_hr_emailed_date(
+    employee_no: str = Path(...),
+    date_hr_emailed: str = Body(..., media_type="text/plain")
+):
+    try:
+        employee_no_hash = hash_employee_no(employee_no)
+        response = supabase.table("ResignedEmployees") \
+            .update({"date_hr_emailed": date_hr_emailed}) \
+            .eq("employee_no_hash", employee_no_hash) \
+            .execute()
+        
+        if response.data and len(response.data) > 0:
+            return {"message": f"Changed date when HR emailed on employee {employee_no} resignation."}
+        else:
+            raise HTTPException(status_code=404, detail="Employee not found")
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.put("/{employee_no}/remarks")
+async def edit_remarks(
+    employee_no: str = Path(...),
+    remarks: str | None = Body(..., media_type="text/plain")
+):
+    try:
+        employee_no_hash = hash_employee_no(employee_no)
+        response = supabase.table("ResignedEmployees") \
+            .update({"remarks": encrypt_field(remarks) if remarks else None}) \
+            .eq("employee_no_hash", employee_no_hash) \
+            .execute()
+        
+        if response.data and len(response.data) > 0:
+            return {"message": f"Set employee {employee_no} remarks."}
+        else:
+            raise HTTPException(status_code=404, detail="Employee not found")
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+    
+@router.get("/report")
+async def get_report(start_date: str, end_date: str, format: str = Query(default="csv", regex="^(csv|xlsx)$")):
+    """
+    Generate an CSV or XLSX report of processed resignees within a selected timeframe.
+    """
+    try:
+        end_date = datetime.fromisoformat(end_date).date().strftime("%Y-%m-%d")
+        start_date = datetime.fromisoformat(start_date).date().strftime("%Y-%m-%d")
+
+        response = supabase.table("ResignedEmployees") \
+            .select("*") \
+            .lte("last_day", end_date) \
+            .gte("last_day", start_date) \
+            .execute()
+        
+        if response.data and len(response.data) > 0:
+            # Decrypt fields for the report if needed
+            decrypted_data = []
+            for entry in response.data:
+                print(entry.keys())
+                
+                decrypted_data.append({
+                    "Employee no.": decrypt_field(entry['employee_no']),
+                    "Last Name": decrypt_field(entry['last_name']),
+                    "First Name": decrypt_field(entry['first_name']),
+                    "Middle Name": decrypt_field(entry['middle_name']),
+                    "Cost center": decrypt_field(entry['cost_center']),
+                    "Position Title": decrypt_field(entry['position_title']),
+                    "Rank": decrypt_field(entry['rank']),
+                    "Department": decrypt_field(entry['department']),
+                    "Date hired": entry['date_hired'],
+                    "Last day with AUB": entry['last_day'],
+                    "Date HR Emailed": entry['date_hr_emailed'],
+                    "Batch Deactivation from UM": entry['um_date_deac'],
+                    "3rd party systems/apps": entry['tp_date_deac'],
+                    "E-mails": entry['email_date_deac'],
+                    "Windows": entry['windows_date_deac'],
+                    "Remarks": (decrypt_field(entry['remarks']) if entry['remarks'] else ""),
+                    "Processed on": (
+                        datetime.fromisoformat(entry['processed_date_time'].replace("Z", "+00:00")).strftime("%B %d, %Y %I:%M %p")
+                        if entry.get('processed_date_time') else ""
+                    )
+                })
+
+            if format == "csv":
+                csv_file = StringIO()
+                generate_csv_report(csv_file, decrypted_data)
+                return Response(
+                content=csv_file.getvalue(),
+                media_type="text/csv",
+                headers={"Content-Disposition": "attachment; filename=export.csv"},
+                )
+
+            elif format == "xlsx":
+                excel_file = BytesIO()
+                generate_xls_report(excel_file, decrypted_data)
+                excel_file.seek(0)
+                return Response(
+                    content=excel_file.read(),
+                    media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                    headers={"Content-Disposition": "attachment; filename=export.xlsx"},
+                )
+        else:
+            raise HTTPException(status_code=404, detail="There were no resignees processed within the given period")
+    
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+    
 # Endpoint to mark resignation entry as processed (will now not be returned to client )
-@router.put("/resignees/{employee_no}/process")
+@router.put("/{employee_no}/process")
 async def mark_resignee_processed(employee_no: str = Path(...)):
     try:
         now = datetime.now().isoformat()
@@ -150,7 +420,7 @@ async def mark_resignee_processed(employee_no: str = Path(...)):
         raise HTTPException(status_code=400, detail=str(e))
 
 
-@router.put("/resignees/{employee_no}/unprocess")
+@router.put("/{employee_no}/unprocess")
 async def unmark_resignee_processed(
     employee_no: str = Path(..., description="Employee number to unmark as processed")
 ):
@@ -167,175 +437,5 @@ async def unmark_resignee_processed(
             return {"message": f"Employee {employee_no} unmarked as processed."}
         else:
             raise HTTPException(status_code=404, detail="Employee not found")
-    except Exception as e:
-        raise HTTPException(status_code=400, detail=str(e))
-
-@router.put("/resignees/{employee_no}/last_day/edit")    
-async def edit_employee_last_day(
-    employee_no: str = Path(...),
-    last_day: str = Body(..., media_type="text/plain")
-):
-    """
-    Edit an employee's recorded last day.
-    Format: YYYY-MM-DD
-    """
-    try:
-        employee_no_hash = hash_employee_no(employee_no)
-        response = supabase.table("ResignedEmployees") \
-            .update({"last_day": last_day}) \
-            .eq("employee_no_hash", employee_no_hash) \
-            .execute()
-        
-        if response.data and len(response.data) > 0:
-            return {"message": f"Changed employee {employee_no} last day to {last_day}."}
-        else:
-            raise HTTPException(status_code=404, detail="Employee not found")
-        
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
-
-@router.get("/resignees/report")
-async def get_csv_report(start_date: str, end_date: str):
-    """
-    Generate an CSV report of processed resignees within a selected timeframe.
-    """
-    try:
-        end_datetime = datetime.fromisoformat(end_date)
-
-        # Set the time to 23:59:59 of the same day
-        end_datetime = end_datetime.replace(hour=23, minute=59, second=59)
-
-        # Convert back to ISO format string if needed
-        end_date_with_time = end_datetime.isoformat()
-        
-        response = supabase.table("ResignedEmployees") \
-            .select("*") \
-            .lte("processed_date_time", end_date_with_time) \
-            .gte("processed_date_time", start_date) \
-            .execute()
-        
-        if response.data and len(response.data) > 0:
-            # Decrypt fields for the report if needed
-            decrypted_data = []
-            for entry in response.data:
-                print(entry['date_hired'])
-                print(entry['last_day'])
-                decrypted_data.append({
-                    "Employee no.": decrypt_field(entry['employee_no']),
-                    "Last Name": decrypt_field(entry['last_name']),
-                    "First Name": decrypt_field(entry['first_name']),
-                    "Middle Name": decrypt_field(entry['middle_name']),
-                    "Cost center": decrypt_field(entry['cost_center']),
-                    "Position Title": decrypt_field(entry['position_title']),
-                    "Rank": decrypt_field(entry['rank']),
-                    "Department": decrypt_field(entry['department']),
-                    "Date hired": entry['date_hired'],
-                    "Last day with AUB": entry['last_day'],
-                    "Date and Time processed": (
-                        datetime.fromisoformat(entry['processed_date_time'].replace("Z", "+00:00")).strftime("%B %d, %Y %I:%M %p")
-                        if entry.get('processed_date_time') else ""
-                    )
-                })
-            csv_file = StringIO()
-            generate_report(csv_file, decrypted_data)
-
-            return Response(
-                content=csv_file.getvalue(),
-                media_type="text/csv",
-                headers={"Content-Disposition": "attachment; filename=export.csv"},
-            )
-        else:
-            raise HTTPException(status_code=404, detail="There were no resignees processed within the given period")
-    
-    except Exception as e:
-        raise HTTPException(status_code=400, detail=str(e))
-
-@router.post("/login")
-async def login(response: Response, username: str = Form(...), password: str = Form(...)):
-    """
-    Login endpoint for Accounts table.
-    """
-    try:
-        db_response = supabase.table("Accounts") \
-            .select("*") \
-            .eq("username", username) \
-            .execute()
-        print(db_response)
-        if not db_response.data or len(db_response.data) == 0:
-            raise HTTPException(status_code=401, detail="Invalid username or password")
-        
-        account = db_response.data[0]  
-        decrypted_password = decrypt_field(account["password"])
-
-        if password != decrypted_password:
-            raise HTTPException(status_code=401, detail="Invalid username or password")
-        
-        token_data = {
-            "sub": username,
-            "exp": datetime.now() + timedelta(hours=12)
-        }
-
-        secret_key = os.getenv("JWT_SECRET_KEY")
-        if not secret_key:
-            raise ValueError("SECRET_KEY not found in environment variables")
-
-        token = jwt.encode(token_data, secret_key, "HS256")
-        
-        response.set_cookie(
-            key="access_token",
-            value=f"Bearer {token}",
-            httponly=True,
-            max_age=3600 * 12,
-            secure=True,  # For HTTPS, toggle to True. For HTTP, to False
-            samesite="none" # For HTTPS, none. For HTTP, lax
-        )
-
-        print(response.headers)
-        
-        return {"message": "Login successful"}
-        
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
-
-@router.get("/check-auth")
-async def check_auth(request: Request):
-    if not request.cookies.get("access_token"):
-        raise HTTPException(status_code=401)
-    return {"authenticated": True}
-
-@router.post("/logout")
-async def logout(response: Response):
-    response.delete_cookie(
-        key="access_token",
-        path="/",
-        secure=True,
-        samesite="none"
-                           
-    )
-    return {"message": "Successfully logged out"}
-
-@router.post("/accounts")
-async def create_account(
-    username: str = Form(...),
-    password: str = Form(...)
-):
-    """
-    Create a new account with encrypted password.
-    Ensures no duplicate usernames and that passwords match.
-    """
-    try:
-        # Check for duplicate username
-        existing = supabase.table("Accounts") \
-            .select("username") \
-            .eq("username", username) \
-            .execute()
-        if existing.data and len(existing.data) > 0:
-            raise HTTPException(status_code=400, detail="Username already exists")
-
-        encrypted_password = encrypt_field(password)
-        response = supabase.table("Accounts") \
-            .insert({"username": username, "password": encrypted_password}) \
-            .execute()
-        return {"message": "Account created successfully"}
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
