@@ -151,35 +151,49 @@
   }
 
   async function submitMessage() {
-    const rawLines = message.split('\n'); // Do NOT trim here
-
+    const rawLines = message.split('\n');
     const LINES_PER_EMPLOYEE = 20;
 
-    // Validation: must be a clean multiple of 20
-    if (rawLines.length % LINES_PER_EMPLOYEE !== 0) {
-      toast.error(`Invalid input: expected 20 lines per employee (10 fields, each followed by a blank line). Got ${rawLines.length} lines.`);
+    // Remove trailing blank lines
+    while (rawLines.length && rawLines[rawLines.length - 1].trim() === '') {
+      rawLines.pop();
+    }
+
+    // Validation: should match expected format
+    const remainder = rawLines.length % LINES_PER_EMPLOYEE;
+    if (remainder !== 19 && remainder !== 0) {
+      toast.error(`Invalid input: expected 20 lines per employee (10 fields, each followed by a blank line), except the last employee may omit the trailing blank. Got ${rawLines.length} lines.`);
       return;
     }
 
-    const numEmployees = rawLines.length / LINES_PER_EMPLOYEE;
+    const numEmployees = Math.floor(rawLines.length / LINES_PER_EMPLOYEE) + (remainder === 19 ? 1 : 0);
 
     for (let emp = 0; emp < numEmployees; emp++) {
-      for (let i = 0; i < LINES_PER_EMPLOYEE; i++) {
-        const index = emp * LINES_PER_EMPLOYEE + i;
+      const base = emp * LINES_PER_EMPLOYEE;
+
+      for (let i = 0; i < 19; i++) {
+        const index = base + i;
         const line = rawLines[index];
 
         if (i % 2 === 0) {
-          // Expecting data
           if (!line || line.trim() === '') {
             toast.error(`Employee ${emp + 1}, line ${i + 1} is empty. Expected a data field.`);
             return;
           }
         } else {
-          // Expecting blank
           if (line.trim() !== '') {
             toast.error(`Employee ${emp + 1}, line ${i + 1} must be blank (used for spacing).`);
             return;
           }
+        }
+      }
+
+      // For all but the last employee, line 20 (blank) must exist and be empty
+      if (emp < numEmployees - 1) {
+        const trailingBlank = rawLines[base + 19];
+        if (trailingBlank && trailingBlank.trim() !== '') {
+          toast.error(`Employee ${emp + 1}, line 20 must be blank (used for spacing).`);
+          return;
         }
       }
     }
@@ -190,7 +204,7 @@
         headers: {
           'Content-Type': 'text/plain'
         },
-        body: message.trimEnd(), // keep any final newline that the user intended
+        body: message.trimEnd(),
         credentials: 'include'
       });
 
@@ -201,14 +215,15 @@
 
       await loadEmployees();
       message = '';
-      let summaryList: string[] = [];
+
+      const summaryList: string[] = [];
 
       for (let emp = 0; emp < numEmployees; emp++) {
         const base = emp * LINES_PER_EMPLOYEE;
-        const empNo = rawLines[base].trim();
-        const lastName = rawLines[base + 6].trim();
-        const firstName = rawLines[base + 8].trim();
-        const middleName = rawLines[base + 10].trim();
+        const empNo = rawLines[base]?.trim() ?? '';
+        const lastName = rawLines[base + 6]?.trim() ?? '';
+        const firstName = rawLines[base + 8]?.trim() ?? '';
+        const middleName = rawLines[base + 10]?.trim() ?? '';
 
         summaryList.push(`${empNo} – ${firstName} ${middleName} ${lastName}`);
       }
@@ -216,12 +231,12 @@
       toast.success(
         `Successfully added ${numEmployees} employee(s)!\n${summaryList.join('\n')}`
       );
-
     } catch (error) {
       const errorMsg = error instanceof Error ? error.message : String(error);
       toast.error(`Failed to add employee(s): ${errorMsg}`);
     }
   }
+
 
 
   async function handleStatusToggle(event: { detail: { employee: Employee, action?: string } }) {
