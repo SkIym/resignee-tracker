@@ -314,16 +314,13 @@ async def get_report(start_date: str, end_date: str, format: str = Query(default
     Generate an CSV or XLSX report of processed resignees within a selected timeframe.
     """
     try:
-        # end_datetime = datetime.fromisoformat(end_date)
+        end_date = datetime.fromisoformat(end_date).date().strftime("%Y-%m-%d")
+        start_date = datetime.fromisoformat(start_date).date().strftime("%Y-%m-%d")
 
-        # # Set the time to 23:59:59 of the same day
-        # end_datetime = end_datetime.replace(hour=23, minute=59, second=59)
-
-        # # Convert back to ISO format string if needed
-        # end_date_with_time = end_datetime.isoformat()
-        
         response = supabase.table("ResignedEmployees") \
             .select("*") \
+            .lte("last_day", end_date) \
+            .gte("last_day", start_date) \
             .execute()
         
         if response.data and len(response.data) > 0:
