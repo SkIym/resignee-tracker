@@ -244,7 +244,7 @@ function mapFieldToKey(field: string): string {
           type="text"
           bind:value={inputValue}
           placeholder={`Enter ${selectedField}...`}
-          class="w-full px-2 py-1 border rounded mb-0.25"
+          class="w-full px-2 py-1 border border-gray-300 rounded mb-0.25"
           on:keydown={(e) => {
             if (e.key === 'Enter') {
               addFilter();
@@ -304,7 +304,7 @@ function mapFieldToKey(field: string): string {
     border-radius: 0.75rem;
     padding: 1rem;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-    z-index: 10;
+    z-index: 50;
     width: 300px;
   }
 
@@ -358,7 +358,6 @@ function mapFieldToKey(field: string): string {
     display: flex;
     flex-direction: column;
     gap: 0.5rem;
-    margin-bottom: 1rem;
   }
 
   .date-range input[type="date"] {
@@ -416,6 +415,7 @@ function mapFieldToKey(field: string): string {
     font-size: 1.25rem;
     cursor: pointer;
     color: #ef4444;
+    padding-right: 5px;
   }
 
   .clear-button {

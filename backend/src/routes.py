@@ -291,12 +291,12 @@ async def edit_hr_emailed_date(
 @router.put("/{employee_no}/remarks")
 async def edit_windows_deactivation_date(
     employee_no: str = Path(...),
-    remarks: str = Body(..., media_type="text/plain")
+    remarks: str | None = Body(..., media_type="text/plain")
 ):
     try:
         employee_no_hash = hash_employee_no(employee_no)
         response = supabase.table("ResignedEmployees") \
-            .update({"remarks": encrypt_field(remarks)}) \
+            .update({"remarks": encrypt_field(remarks) if remarks else None}) \
             .eq("employee_no_hash", employee_no_hash) \
             .execute()
         

@@ -335,17 +335,13 @@
 
 <div class="relative">
     <!-- Main scrollable table container -->
-    <div class="overflow-hidden" bind:this={tableContainer}>
-        <div
-        class="overflow-x-auto overflow-y-visible hide-main-scrollbar"
-            bind:this={scrollWrapper}
-        >
+    <div class="overflow-hidden max-h-screen" bind:this={tableContainer}>
+        <div class="overflow-x-auto overflow-y-auto hide-main-scrollbar max-h-screen" bind:this={scrollWrapper}>
             <table class="min-w-full text-xs text-left text-gray-700 bg-white">
-                    <thead class="bg-gray-100 text-xs text-gray-500 uppercase">
+                    <thead class="bg-gray-100 text-xs text-gray-500 uppercase sticky top-0 z-20">
                         <tr>
                             <!---------- Employee no. ---------->
-                            <th
-                                class="px-6 py-3 text-left text-[11px] font-bold text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 transition-colors sticky left-0 bg-gray-100"
+                            <th class="px-6 py-3 text-left text-[11px] font-bold text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 transition-colors sticky left-0 top-0 bg-gray-100 z-30"
                                 on:click={() => handleSort('employee_no')}
                             >
                             <div class="flex items-center gap-1">
