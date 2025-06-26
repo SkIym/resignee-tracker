@@ -33,6 +33,10 @@ class ResigneeCreate(BaseModel):
     department: str 
     last_day: str
 
+class EditDate(BaseModel):
+    message: str
+    date: str
+    late: bool
 class Account(Enum):
     UM = 1
     TP = 2

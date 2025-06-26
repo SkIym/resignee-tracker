@@ -3,7 +3,7 @@ load_dotenv()
 
 # list endpoints here
 from fastapi import APIRouter, HTTPException, Body, Path, Query
-from schemas import ResigneeDisplay, ResigneeCreate, Account
+from schemas import ResigneeDisplay, ResigneeCreate, Account, EditDate
 from services import parse_resignee_text, generate_csv_report, generate_xls_report, is_late
 from datetime import datetime, timedelta
 from supabase_client import supabase
@@ -188,7 +188,7 @@ async def edit_employee_last_day(
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-@router.put("/{employee_no}/um")
+@router.put("/{employee_no}/um", response_model=EditDate)
 async def edit_um_deactivation_date(
     employee_no: str = Path(...),
     um_date_deac: str = Body(..., media_type="text/plain")
@@ -201,14 +201,20 @@ async def edit_um_deactivation_date(
             .execute()
         
         if response.data and len(response.data) > 0:
-            return {"message": f"Set employee {employee_no} Batch Deactivation from UM date to {um_date_deac}."}
+            emp = response.data[0]
+
+            return EditDate(
+                message = f"Set employee {employee_no} Batch Deactivation from UM date to {um_date_deac}.",
+                date = um_date_deac,
+                late = is_late(emp['last_day'], um_date_deac, emp['date_hr_emailed'], Account.UM)
+            )
         else:
             raise HTTPException(status_code=404, detail="Employee not found")
         
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-@router.put("/{employee_no}/third-party")
+@router.put("/{employee_no}/third-party", response_model=EditDate)
 async def edit_tp_deactivation_date(
     employee_no: str = Path(...),
     tp_date_deac: str = Body(..., media_type="text/plain")
@@ -221,14 +227,21 @@ async def edit_tp_deactivation_date(
             .execute()
         
         if response.data and len(response.data) > 0:
-            return {"message": f"Set employee {employee_no} 3rd party systems deactivation date to {tp_date_deac}."}
+            emp = response.data[0]
+
+            return EditDate(
+                message = f"Set employee {employee_no} 3rd party systems deactivation date to {tp_date_deac}.",
+                date = tp_date_deac,
+                late = is_late(emp['last_day'], tp_date_deac, emp['date_hr_emailed'], Account.TP)
+            )
+
         else:
             raise HTTPException(status_code=404, detail="Employee not found")
         
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-@router.put("/{employee_no}/email")
+@router.put("/{employee_no}/email", response_model=EditDate)
 async def edit_email_deactivation_date(
     employee_no: str = Path(...),
     email_date_deac: str = Body(..., media_type="text/plain")
@@ -241,14 +254,21 @@ async def edit_email_deactivation_date(
             .execute()
         
         if response.data and len(response.data) > 0:
-            return {"message": f"Set employee {employee_no} e-mail deactivation date to {email_date_deac}."}
+            emp = response.data[0]
+
+            return EditDate(
+                message = f"Set employee {employee_no} e-mail deactivation date to {email_date_deac}.",
+                date = email_date_deac,
+                late = is_late(emp['last_day'], email_date_deac, emp['date_hr_emailed'], Account.EM)
+            )
+
         else:
             raise HTTPException(status_code=404, detail="Employee not found")
         
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-@router.put("/{employee_no}/windows")
+@router.put("/{employee_no}/windows", response_model=EditDate)
 async def edit_windows_deactivation_date(
     employee_no: str = Path(...),
     windows_date_deac: str = Body(..., media_type="text/plain")
@@ -261,7 +281,13 @@ async def edit_windows_deactivation_date(
             .execute()
         
         if response.data and len(response.data) > 0:
-            return {"message": f"Set employee {employee_no} windows return date to {windows_date_deac}."}
+            emp = response.data[0]
+
+            return EditDate(
+                message = f"Set employee {employee_no} windows return date to {windows_date_deac}.",
+                date = windows_date_deac,
+                late = is_late(emp['last_day'], windows_date_deac, emp['date_hr_emailed'], Account.WN)
+            )
         else:
             raise HTTPException(status_code=404, detail="Employee not found")
         
@@ -289,7 +315,7 @@ async def edit_hr_emailed_date(
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.put("/{employee_no}/remarks")
-async def edit_windows_deactivation_date(
+async def edit_remarks(
     employee_no: str = Path(...),
     remarks: str | None = Body(..., media_type="text/plain")
 ):
