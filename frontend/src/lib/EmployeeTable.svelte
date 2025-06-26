@@ -232,11 +232,15 @@
         editingValue = String(employee.remarks || '');
     }
 
-    // Handle escape key to cancel editing
     function handleKeydown(event: KeyboardEvent) {
         if (event.key === 'Escape') {
             cancelEdit();
         }
+    }
+
+    function isEmployeeComplete(employee: Employee): boolean {
+        const requiredFields = [employee.um, employee.third_party, employee.email, employee.windows];
+        return requiredFields.every(field => field && field.trim() !== '');
     }
 
     function toggleStatus(employee: Employee) {
@@ -944,13 +948,23 @@
                             </td>
 
                             <!-- Toggle Checkbox -->
-                            <td class="pl-5 py-4 whitespace-nowrap text-xs text-gray-500 flex justify-center items-center">
-                            <input
-                                type="checkbox"
-                                class="w-5 h-5 text-green-600 rounded border-gray-300 focus:ring-green-500"
-                                checked={employee.processed_date_time !== null}
-                                on:change={() => toggleStatus(employee)}
-                            />
+                            <td class="pl-5 py-4 whitespace-nowrap text-xs text-gray-500 text-center align-middle">
+                                {#if isEmployeeComplete(employee)}
+                                    <!-- Normal checkbox when all details are complete -->
+                                    <input
+                                        type="checkbox"
+                                        class="w-5 h-5 text-green-600 rounded border-gray-300 focus:ring-green-500 cursor-pointer align-middle"
+                                        checked={employee.processed_date_time !== null}
+                                        on:change={() => toggleStatus(employee)}
+                                    />
+                                {:else}
+                                    <!-- Disabled gray checkbox when details are incomplete -->
+                                    <div 
+                                        class="w-4 h-4 bg-gray-400 border-2 border-gray-400 rounded cursor-not-allowed relative align-middle inline-block"
+                                        title="Incomplete details"
+                                    >
+                                    </div>
+                                {/if}
                             </td>
 
                             <!-- Remarks Field -->
