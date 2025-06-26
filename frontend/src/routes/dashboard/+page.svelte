@@ -162,7 +162,7 @@
     // Validation: should match expected format
     const remainder = rawLines.length % LINES_PER_EMPLOYEE;
     if (remainder !== 19 && remainder !== 0) {
-      toast.error(`Invalid input: expected 20 lines per employee (10 fields, each followed by a blank line), except the last employee may omit the trailing blank. Got ${rawLines.length} lines.`);
+      toast.error(`Invalid input: expected 20 lines per employee (10 fields, each followed by a blank line), Got ${rawLines.length} lines.`);
       return;
     }
 
