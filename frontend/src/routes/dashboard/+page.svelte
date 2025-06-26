@@ -151,18 +151,46 @@
   }
 
   async function submitMessage() {
-    if (!message.trim()) {
+    const rawLines = message.split('\n'); // Do NOT trim here
+
+    const LINES_PER_EMPLOYEE = 20;
+
+    // Validation: must be a clean multiple of 20
+    if (rawLines.length % LINES_PER_EMPLOYEE !== 0) {
+      toast.error(`Invalid input: expected 20 lines per employee (10 fields, each followed by a blank line). Got ${rawLines.length} lines.`);
       return;
     }
 
-    try {    
+    const numEmployees = rawLines.length / LINES_PER_EMPLOYEE;
+
+    for (let emp = 0; emp < numEmployees; emp++) {
+      for (let i = 0; i < LINES_PER_EMPLOYEE; i++) {
+        const index = emp * LINES_PER_EMPLOYEE + i;
+        const line = rawLines[index];
+
+        if (i % 2 === 0) {
+          // Expecting data
+          if (!line || line.trim() === '') {
+            toast.error(`Employee ${emp + 1}, line ${i + 1} is empty. Expected a data field.`);
+            return;
+          }
+        } else {
+          // Expecting blank
+          if (line.trim() !== '') {
+            toast.error(`Employee ${emp + 1}, line ${i + 1} must be blank (used for spacing).`);
+            return;
+          }
+        }
+      }
+    }
+
+    try {
       const res = await fetch(`${BASE_URL}/resignees`, {
         method: 'POST',
         headers: {
           'Content-Type': 'text/plain'
         },
-        body: message,
-
+        body: message.trimEnd(), // keep any final newline that the user intended
         credentials: 'include'
       });
 
@@ -172,17 +200,29 @@
       }
 
       await loadEmployees();
-      
       message = '';
-      
-    } catch (error) {
-      if (error instanceof Error) {
-        response = `Error: ${error.message}`;
-      } else {
-        response = `Error: ${String(error)}`;
+      let summaryList: string[] = [];
+
+      for (let emp = 0; emp < numEmployees; emp++) {
+        const base = emp * LINES_PER_EMPLOYEE;
+        const empNo = rawLines[base].trim();
+        const lastName = rawLines[base + 6].trim();
+        const firstName = rawLines[base + 8].trim();
+        const middleName = rawLines[base + 10].trim();
+
+        summaryList.push(`${empNo} – ${firstName} ${middleName} ${lastName}`);
       }
+
+      toast.success(
+        `Successfully added ${numEmployees} employee(s)!\n${summaryList.join('\n')}`
+      );
+
+    } catch (error) {
+      const errorMsg = error instanceof Error ? error.message : String(error);
+      toast.error(`Failed to add employee(s): ${errorMsg}`);
     }
   }
+
 
   async function handleStatusToggle(event: { detail: { employee: Employee, action?: string } }) {
     const { employee, action } = event.detail;
