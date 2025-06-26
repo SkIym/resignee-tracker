@@ -81,7 +81,8 @@ async def add_resignees(resignees: str = Body(..., media_type="text/plain")):
                 um_late=False,
                 third_party_late=False,
                 email_late=False,
-                windows_late=False
+                windows_late=False,
+                processed_date_time=None
             ))
 
         return cleaned_entries
