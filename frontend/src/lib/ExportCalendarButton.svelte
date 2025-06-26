@@ -75,7 +75,7 @@
 
 
   <!-- Export Button w/ Dropdown -->
-  <div class="relative" on:blur={closeDropdownOnBlur} tabindex="0">
+  <div class="relative" on:blur={closeDropdownOnBlur}>
     <button
       on:click={toggleDropdown}
       class={`flex items-center gap-2 px-4.25 py-1.75 rounded-md text-sm font-[Open_Sans] hover:bg-blue-600 transition ${
@@ -90,11 +90,23 @@
 
     {#if showDropdown}
       <ul class="absolute right-0 mt-1 w-36 z-50 bg-white border border-gray-300 rounded-md shadow-md z-10 text-sm font-[Open_Sans]">
-        <li on:click={() => handleExport('csv')} class="px-4 py-2 hover:bg-gray-100 cursor-pointer">
-          Export as CSV
+        <li>
+          <button
+            type="button"
+            on:click={() => handleExport('csv')}
+            class="w-full text-left px-4 py-2 hover:bg-gray-100"
+          >
+            Export as CSV
+          </button>
         </li>
-        <li on:click={() => handleExport('xlsx')} class="px-4 py-2 hover:bg-gray-100 cursor-pointer">
-          Export as XLSX
+        <li>
+          <button
+            type="button"
+            on:click={() => handleExport('xlsx')}
+            class="w-full text-left px-4 py-2 hover:bg-gray-100"
+          >
+            Export as XLSX
+          </button>
         </li>
       </ul>
     {/if}

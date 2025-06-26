@@ -143,8 +143,8 @@ def is_late(resigned: str, deac: str | None, hr: str, acc: Account) -> bool:
                 # Else, on time
                 return False
             case _:
-                # If employee last day on Friday and deactivated on Monday
-                if (resigned_d.weekday() == 4 and deac_d.weekday() == 0): return False
+                # If employee last day on Friday and deactivated on or before Monday
+                if (resigned_d.weekday() == 4 and (deac_d.weekday() == 0 or deac_d.weekday() == 6)): return False
 
                 # If account was deactivated the day after last day of employee
                 if (resigned_d + timedelta(days=1)) == deac_d: return False
