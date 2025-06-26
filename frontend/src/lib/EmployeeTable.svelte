@@ -152,18 +152,24 @@
                 throw new Error(`Error ${res.status}: ${text}`);
             }
 
+            const data = await res.json()
             const idx = employees.findIndex(emp => emp.employee_no === employee.employee_no);
             if (idx !== -1) {
+
                 if (trimmed === 'NO_ACCOUNT') {
                     employees[idx][key] = '1900-01-01';
                 } else {
                     employees[idx][key] = new Date(trimmed).toISOString();
+                    if ((key == 'um') || (key == 'third_party') || (key == 'email') || (key == 'windows')) {
+                        const late_key = key.concat("_late")
+                        employees[idx][late_key] = data.late
+                    }
                 }
                 employees = [...employees];
                 // toast.success(successMessage);
                 
                 // Trigger a refetch of employee data to get updated late flags
-                if (onEmployeeUpdate) {
+                if (onEmployeeUpdate && (key == "last_day" || key == "date_hr_emailed")) {
                     onEmployeeUpdate();
                 }
             }
