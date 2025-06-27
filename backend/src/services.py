@@ -141,7 +141,7 @@ def is_late(resigned: str, deac: str | None, hr: str, acc: Account) -> bool:
 
         resigned_d = datetime.strptime(resigned, "%Y-%m-%d").date()
         deac_d = datetime.strptime(deac, "%Y-%m-%d").date()
-        hr_d = datetime.strptime(hr, "%Y-%m-%d").date()
+        hr_d = datetime.fromisoformat(hr).date()
 
         match acc:
             case Account.UM:
