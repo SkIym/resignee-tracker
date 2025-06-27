@@ -368,7 +368,7 @@ async def get_report(start_date: str, end_date: str, format: str = Query(default
                     "Department": decrypt_field(entry['department']),
                     "Date hired": entry['date_hired'],
                     "Last day with AUB": entry['last_day'],
-                    "Date HR Emailed": entry['date_hr_emailed'],
+                    "Date HR Emailed": datetime.fromisoformat(entry['date_hr_emailed']).strftime("%Y-%m-%d"),
                     "Batch Deactivation from UM": entry['um_date_deac'],
                     "3rd party systems/apps": entry['tp_date_deac'],
                     "E-mails": entry['email_date_deac'],
