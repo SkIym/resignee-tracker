@@ -1,6 +1,5 @@
 <script lang="ts">
-    import toast from "svelte-5-french-toast";
-
+  import toast from "svelte-5-french-toast";
   let startDate = '';
   let endDate = '';
   let exportConfirmed = false;
@@ -34,7 +33,7 @@
       exportConfirmed = true;
     } catch (err) {
       console.error('Error downloading backend report:', err);
-      toast.error('No process dates were found within the specified date range');
+      toast.error('No dates were found within the specified date range');
     }
   }
 
