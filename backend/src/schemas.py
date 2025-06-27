@@ -1,5 +1,5 @@
 from pydantic import BaseModel
-from enum import Enum
+from enum import Enum, StrEnum
 class ResigneeDisplay(BaseModel):
     employee_no: str
     date_hired: str
@@ -42,3 +42,7 @@ class Account(Enum):
     TP = 2
     EM = 3
     WN = 4
+
+class Status(StrEnum):
+    PROCESSED = "PROCESSED"
+    UNPROCESSED = "UNPROCESSED"

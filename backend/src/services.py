@@ -1,7 +1,7 @@
 # place parsing functions and other business logic here
 
 # Parsing function (from raw text from email to labeled data)
-from schemas import ResigneeCreate, Account
+from schemas import ResigneeCreate, Account, Status
 from io import StringIO, BytesIO
 import csv
 from typing import Sequence, Mapping, Any
@@ -12,7 +12,7 @@ from datetime import datetime, timedelta
 
 headers = [
     "Employee no.", "Date hired", "Cost center", "Last Name", "First Name", "Middle Name",
-    "Position Title", "Rank", "Department", "Last day with AUB", "Date HR Emailed", "Batch Deactivation from UM", "3rd party systems/apps", "E-mails", "Windows", "Remarks", "Processed on"
+    "Position Title", "Rank", "Department", "Last day with AUB", "Date HR Emailed", "Batch Deactivation from UM", "3rd party systems/apps", "E-mails", "Windows", "Remarks", "Status", "Processed on"
 ]
 
 def parse_resignee_text(raw_text: str) -> list[ResigneeCreate]:
@@ -58,6 +58,8 @@ def generate_xls_report(file: BytesIO, data: Sequence[Mapping[str, Any]]) -> Non
 
     header_format = workbook.add_format({'bold': True})
     late_format = workbook.add_format({'bg_color': "#F9808E"})
+    processed_format = workbook.add_format({'bg_color': "#2BFF00", 'bold': True})
+    unprocessed_format = workbook.add_format({'bg_color': "#FF5500", 'bold': True})
 
     worksheet.write_row(0, 0, headers, header_format)
 
@@ -71,6 +73,7 @@ def generate_xls_report(file: BytesIO, data: Sequence[Mapping[str, Any]]) -> Non
             tp = entry['3rd party systems/apps']
             em = entry['E-mails']
             wn = entry['Windows']
+            processed = entry["Status"]
 
             details: list[Any] = [entry['Employee no.'],
             entry['Date hired'],
@@ -87,16 +90,24 @@ def generate_xls_report(file: BytesIO, data: Sequence[Mapping[str, Any]]) -> Non
             tp,
             em,
             wn,
-            entry['Remarks'],
-            entry['Processed on']]
+            entry['Remarks']]
             worksheet.write_row(i, 0, details)
 
+            # Marking if late
             for col, (deac, acc) in enumerate([(um, Account.UM), (tp, Account.TP), (em, Account.EM), (wn, Account.WN)], 11):
                 if decode_deactivation_date(deac) == "No Existing Account":
                     worksheet.write(i, col, "No Existing Account")
                     continue
                 if is_late(last_day, deac, hr, acc):
                     worksheet.write(i, col, deac, late_format)
+            
+            # Marking if processed 
+            if processed == Status.PROCESSED:
+                worksheet.write(i, 16, processed, processed_format)
+                worksheet.write(i, 17, entry["Processed on"])
+            else:
+                worksheet.write(i, 16, processed, unprocessed_format)
+
             i += 1
 
     except Exception as e:
@@ -130,7 +141,7 @@ def is_late(resigned: str, deac: str | None, hr: str, acc: Account) -> bool:
 
         resigned_d = datetime.strptime(resigned, "%Y-%m-%d").date()
         deac_d = datetime.strptime(deac, "%Y-%m-%d").date()
-        hr_d = datetime.strptime(hr, "%Y-%m-%d").date()
+        hr_d = datetime.fromisoformat(hr).date()
 
         match acc:
             case Account.UM:
