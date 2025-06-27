@@ -224,7 +224,7 @@
         } catch (error) {
             console.error('Error updating remarks:', error);
             const msg = error instanceof Error ? error.message : 'Unknown error';
-            alert(`Failed to update remarks: ${msg}`);
+            toast.error('Failed to update remarks');
         } finally {
             editingEmployeeId = null;
             editingValue = '';

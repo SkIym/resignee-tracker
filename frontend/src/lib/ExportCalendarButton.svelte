@@ -1,4 +1,6 @@
 <script lang="ts">
+    import toast from "svelte-5-french-toast";
+
   let startDate = '';
   let endDate = '';
   let exportConfirmed = false;
@@ -6,7 +8,7 @@
 
   async function handleExport(format: 'csv' | 'xlsx') {
     if (!startDate || !endDate) {
-      alert('Please select both a start and end date.');
+      toast.error('Please select both a start and end date.');
       return;
     }
 
@@ -32,7 +34,7 @@
       exportConfirmed = true;
     } catch (err) {
       console.error('Error downloading backend report:', err);
-      alert('No process dates were found within the specified date range');
+      toast.error('No process dates were found within the specified date range');
     }
   }
 
