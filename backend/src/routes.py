@@ -3,7 +3,7 @@ load_dotenv()
 
 # list endpoints here
 from fastapi import APIRouter, HTTPException, Body, Path, Query
-from schemas import ResigneeDisplay, ResigneeCreate, Account, EditDate
+from schemas import ResigneeDisplay, ResigneeCreate, Account, EditDate, Status
 from services import parse_resignee_text, generate_csv_report, generate_xls_report, is_late
 from datetime import datetime, timedelta
 from supabase_client import supabase
@@ -374,6 +374,7 @@ async def get_report(start_date: str, end_date: str, format: str = Query(default
                     "E-mails": entry['email_date_deac'],
                     "Windows": entry['windows_date_deac'],
                     "Remarks": (decrypt_field(entry['remarks']) if entry['remarks'] else ""),
+                    "Status": Status.PROCESSED if entry["processed_date_time"] else Status.UNPROCESSED,
                     "Processed on": (
                         datetime.fromisoformat(entry['processed_date_time'].replace("Z", "+00:00")).strftime("%B %d, %Y %I:%M %p")
                         if entry.get('processed_date_time') else ""
