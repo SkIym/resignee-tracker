@@ -65,3 +65,17 @@ exe = EXE(
     codesign_identity=None,
     entitlements_file=None,
 )
+
+app = BUNDLE(
+    exe,
+    name='resignee_tracker.app',
+    icon=None,  # Path to .icns file
+    bundle_identifier=None,  # e.g., 'com.yourcompany.app'
+    info_plist={
+        'NSHighResolutionCapable': 'True',
+        'CFBundleName': 'Resignee Tracker',
+        'CFBundleShortVersionString': '1.0.0',
+        'CFBundleVersion': '1.0.0',
+        'LSMinimumSystemVersion': '10.15',
+    },
+)
