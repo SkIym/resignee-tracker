@@ -176,9 +176,6 @@
                 }
             }
             toast.success(succesxsessage);
-            if ((key === 'last_day' || key === 'date_hr_emailed') && onEmployeeUpdate) {
-                await onEmployeeUpdate();
-            }
 
         } catch (error) {
             console.error('Error updating field:', error);
