@@ -27,9 +27,9 @@ async def login(response: Response, username: str = Form(...), password: str = F
             raise HTTPException(status_code=401, detail="Invalid username or password")
         
         account = db_response.data[0]  
-        decrypted_password = decrypt_field(account["password"])
+        get_password = (account["password"])
 
-        if password != decrypted_password:
+        if password != get_password:
             raise HTTPException(status_code=401, detail="Invalid username or password")
         
         token_data = {

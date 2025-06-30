@@ -70,9 +70,16 @@
 	<title>Login</title>
 </svelte:head>
 
-<div class="min-h-screen flex items-center justify-center bg-gray-100 px-4 py-8">
+<div class="min-h-screen flex items-start justify-center bg-gray-100 px-4 pt-20">
 	<div class="w-full max-w-sm">
-		<form on:submit={handleSubmit} class="space-y-4">
+		<div class="text-center">
+			<!-- Replace `src="/logo.png"` with your actual logo path -->
+			<img src="/assets/proj-1-logo.png"  alt="AUB Logo" class="mx-auto h-40 w-auto mb-4" />
+			<h1 class="text-2xl font-bold text-gray-800"> AUB Resignee Tracker </h1>
+		</div>
+
+		<!-- Login form -->
+		<form on:submit={handleSubmit} class="space-y-4 pt-4">
 			<div>
 				<label for="username" class="block text-sm font-medium text-gray-700 mb-1">
 					Username
@@ -84,7 +91,8 @@
 					bind:value={username}
 					required
 					disabled={isLoading}
-					class="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg shadow-sm placeholder-gray-400 transition-colors disabled:opacity-50"
+					class="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg placeholder-gray-400 transition-colors disabled:opacity-50 
+						focus:outline-none focus:ring-1 focus:ring-red-500 focus:border-red-500"
 				/>
 			</div>
 
@@ -99,7 +107,8 @@
 					bind:value={password}
 					required
 					disabled={isLoading}
-					class="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg shadow-sm placeholder-gray-400 transition-colors disabled:opacity-50"
+					class="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg placeholder-gray-400 transition-colors disabled:opacity-50 
+						focus:outline-none focus:ring-1 focus:ring-red-500 focus:border-red-500"
 				/>
 			</div>
 
@@ -112,22 +121,22 @@
 			<button
 				type="submit"
 				disabled={isLoading}
-				class="mt-6 w-full py-2 px-4 bg-blue-500 hover:bg-blue-600 disabled:bg-blue-300 text-white font-medium rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors"
+				class="mt-6 w-full py-2 px-4 bg-red-500 hover:bg-red-600 disabled:bg-red-300 text-white font-medium rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 transition-colors"
 			>
 				{isLoading ? 'Logging in...' : 'Login'}
 			</button>
 		</form>
-
+<!-- 
 		<div class="mt-5 text-center">
 			<p class="text-left text-sm text-gray-600 mb-1">Don't have an account yet?</p>
 			<button
 				on:click={handleSignUp}
 				type="button"
 				disabled={isLoading}
-				class="border-3 border-blue-500 w-full py-2 px-4 hover:bg-gray-300 disabled:opacity-50 text-blue-500 font-medium rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-offset-2 transition-colors"
+				class="border-3 border-red-500 w-full py-2 px-4 hover:bg-gray-300 disabled:opacity-50 text-red-500 font-medium rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-offset-2 transition-colors"
 			>
 				Sign Up
 			</button>
-		</div>
+		</div> -->
 	</div>
 </div>

@@ -164,20 +164,20 @@
                         (employees[idx] as any)[late_key] = false
                     }
                 } else {
-                    if (key in employees[idx]) {
-                        (employees[idx] as any)[key] = new Date(trimmed).toISOString();
-                    }
-                    if ((key == 'um') || (key == 'third_party') || (key == 'email') || (key == 'windows')) {
-                        const late_key = key.concat("_late") as keyof Employee;
-                        if (late_key in employees[idx]) {
-                            (employees[idx] as any)[late_key] = data.late;
-                        }
+                    (employees[idx] as any)[key] = new Date(trimmed).toISOString();
+                    if (['um', 'third_party', 'email', 'windows'].includes(key)) {
+                        const late_key = `${key}_late` as keyof Employee;
+                        (employees[idx] as any)[late_key] = data.late;
                     }
                 }
 
                 if (onEmployeeUpdate && (key === 'last_day' || key === 'date_hr_emailed')) {
                     onEmployeeUpdate()
                 }
+            }
+            toast.success(succesxsessage);
+            if ((key === 'last_day' || key === 'date_hr_emailed') && onEmployeeUpdate) {
+                await onEmployeeUpdate();
             }
 
         } catch (error) {
