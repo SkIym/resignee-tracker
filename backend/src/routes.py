@@ -11,6 +11,7 @@ from io import StringIO, BytesIO
 from fastapi.responses import Response
 from crypto_utils import encrypt_field, decrypt_field
 import hashlib
+from typing import Any
 
 router = APIRouter(
     prefix="/resignees",
@@ -32,6 +33,7 @@ async def add_resignees(resignees: str = Body(..., media_type="text/plain")):
     try:
         entries: list[ResigneeCreate] = parse_resignee_text(resignees)
         cleaned_entries: list[ResigneeDisplay] = []
+        data: list[dict[str, Any]] = []
 
         for entry in entries:
             employee_no_hash = hash_employee_no(entry.employee_no)
@@ -46,7 +48,7 @@ async def add_resignees(resignees: str = Body(..., media_type="text/plain")):
                     detail=f"Duplicate employee_no detected: {entry.employee_no}"
                 )
 
-            encrypted_data = {
+            encrypted_data: dict[str, Any] = {
                 "employee_no": encrypt_field(entry.employee_no),
                 "employee_no_hash": employee_no_hash,
                 "last_name": encrypt_field(entry.last_name),
@@ -66,7 +68,8 @@ async def add_resignees(resignees: str = Body(..., media_type="text/plain")):
                 "remarks": None,
                 "processed_date_time": None
             }
-            supabase.table("ResignedEmployees").insert(encrypted_data).execute()
+
+            data.append(encrypted_data)
 
             # For formatting the name field in the response only
             cleaned_entries.append(ResigneeDisplay(
@@ -85,6 +88,7 @@ async def add_resignees(resignees: str = Body(..., media_type="text/plain")):
                 processed_date_time=None
             ))
 
+        supabase.table("ResignedEmployees").insert(data).execute()
         return cleaned_entries
 
     except Exception as e:
