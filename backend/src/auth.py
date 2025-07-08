@@ -56,8 +56,11 @@ async def login(response: Response, username: str = Form(...), password: str = F
         
         return {"message": "Login successful"}
         
+    except HTTPException as e:
+        raise e  # re-raise 401 or other intentional HTTPExceptions
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail="Something went wrong")
+
 
 @auth_router.get("/check-auth")
 async def check_auth(request: Request):

@@ -47,8 +47,8 @@
 			if (response.ok) {
 				goto('/dashboard');
 			} else {
-				const errorData = await response.text();
-				errorMessage = `Login failed (${response.status}). Please check your credentials.`;
+				const errorData = await response.json();
+				errorMessage = errorData.detail || `Login failed (${response.status})`;
 			}
 		} catch (error) {
       if (error instanceof Error) {
@@ -113,7 +113,7 @@
 			</div>
 
 			{#if errorMessage}
-				<div class="text-red-red-600 text-sm text-center">
+				<div class="text-black text-sm text-center">
 					{errorMessage}
 				</div>
 			{/if}
