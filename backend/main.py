@@ -8,10 +8,15 @@ import threading
 import time
 import ctypes
 
-def get_base_path():
+def resource_path(relative_path):
+    """Get absolute path to resource, works for dev and for PyInstaller"""
     if getattr(sys, 'frozen', False):
-        return sys._MEIPASS
-    return os.path.dirname(os.path.abspath(__file__))
+        # Try both MEIPASS and executable directory
+        base_path = Path(getattr(sys, '_MEIPASS', Path(sys.executable).parent))
+    else:
+        base_path = Path(__file__).parent
+    
+    return str(base_path / relative_path)
 
 def set_window_title(title):
     """Set console title (Windows)."""
@@ -20,10 +25,16 @@ def set_window_title(title):
 
 def open_browser():
     time.sleep(1)
-    webbrowser.open("http://localhost:8000")
+    webbrowser.open("https://localhost:8000")
 
 if __name__ == "__main__":
     set_window_title("AUB Resignee Tracker") 
     threading.Thread(target=open_browser).start()
-    uvicorn.run("src.app:app", host="0.0.0.0", port=8000)
     
+    uvicorn.run(
+        "src.app:app",
+        host="127.0.0.1",
+        port=8000,
+        ssl_keyfile=resource_path("key.pem"),
+        ssl_certfile=resource_path("cert.pem")
+    )

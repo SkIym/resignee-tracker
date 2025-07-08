@@ -19,7 +19,7 @@ app = FastAPI(swagger_ui_parameters={"syntaxHighlight": {"theme": "obsidian"}})
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173"],  # Use your frontend's URL
+    allow_origins=["http://localhost:5173", "http://localhost:8000", "https://localhost:8000"],  # Use your frontend's URL
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -81,5 +81,5 @@ async def serve_spa(full_path: str):
     
     return {"message": "Frontend not built"}
 
-if __name__ == "__main__":
-    uvicorn.run("app:app", host="0.0.0.0", port=8000, reload=False)
+# if __name__ == "__main__":
+#     uvicorn.run("app:app", host="0.0.0.0", port=8000, reload=False)

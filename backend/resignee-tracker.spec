@@ -9,6 +9,8 @@ a = Analysis(
     datas=[
         ('static/*', 'static'),
         ('.env', '.'),
+        ('key.pem', '.'),
+        ('cert.pem', '.'),
         ('src/*.py', 'src'),
     ],
     hiddenimports=[
@@ -64,6 +66,7 @@ exe = EXE(
     target_arch=None,
     codesign_identity=None,
     entitlements_file=None,
+    icon='proj-1-logo.ico'
 )
 
 app = BUNDLE(
