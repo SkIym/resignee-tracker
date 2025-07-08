@@ -3,9 +3,8 @@ import uvicorn
 import sys
 import os
 from pathlib import Path
-import webbrowser
 import threading
-import time
+import webview
 import ctypes
 
 def resource_path(relative_path):
@@ -23,14 +22,7 @@ def set_window_title(title):
     if os.name == 'nt':
         ctypes.windll.kernel32.SetConsoleTitleW(title)
 
-def open_browser():
-    time.sleep(1)
-    webbrowser.open("https://localhost:8000")
-
-if __name__ == "__main__":
-    set_window_title("AUB Resignee Tracker") 
-    threading.Thread(target=open_browser).start()
-    
+def run_fastapi():
     uvicorn.run(
         "src.app:app",
         host="127.0.0.1",
@@ -38,3 +30,23 @@ if __name__ == "__main__":
         ssl_keyfile=resource_path("key.pem"),
         ssl_certfile=resource_path("cert.pem")
     )
+
+if __name__ == "__main__":
+    set_window_title("AUB Resignee Tracker")
+    
+    # Start FastAPI in a separate thread
+    fastapi_thread = threading.Thread(target=run_fastapi, daemon=True)
+    fastapi_thread.start()
+    
+    # Create pywebview window
+    window = webview.create_window(
+        "AUB Resignee Tracker",
+        "https://localhost:8000",
+        width=1200,
+        height=800,
+        min_size=(800, 600),
+        confirm_close=True
+    )
+    
+    # Start the webview
+    webview.start()
