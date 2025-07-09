@@ -2,7 +2,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 # list endpoints here
-from fastapi import APIRouter, HTTPException, Body, Path, Query
+from fastapi import APIRouter, HTTPException, Body, Path, Query, File, UploadFile
 from schemas import ResigneeDisplay, ResigneeCreate, Account, EditDate, Status
 from services import parse_resignee_text, generate_csv_report, generate_xls_report, is_late
 from datetime import datetime, timedelta
@@ -17,9 +17,16 @@ router = APIRouter(
     prefix="/resignees",
     tags=["resignee"]
 )
+db_router = APIRouter(tags=["db"])
 
 def hash_employee_no(employee_no: str) -> str:
     return hashlib.sha256(employee_no.encode()).hexdigest()
+
+
+@db_router.post("/db-route")
+async def confirm_upload(file: UploadFile = File(...)):
+    print(f"Received file: {file.filename}")
+    return {"success": True}
 
 # Endpoint accepting raw text (details) of resignees; will parse and add data to database
 @router.post("", response_model=list[ResigneeDisplay])

@@ -4,7 +4,7 @@ from fastapi.requests import Request
 from fastapi.responses import Response
 from fastapi.responses import JSONResponse
 from services import verify_token
-from routes import router
+from routes import router, db_router
 from auth import auth_router
 from typing import Callable, Awaitable
 
@@ -20,6 +20,7 @@ app.add_middleware(
 
 app.include_router(auth_router)
 app.include_router(router)
+app.include_router(db_router)
 
 @app.middleware("http")
 async def auth_middleware(request: Request, call_next: Callable[[Request], Awaitable[Response]]):
