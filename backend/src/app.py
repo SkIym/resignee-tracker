@@ -19,7 +19,12 @@ app = FastAPI(swagger_ui_parameters={"syntaxHighlight": {"theme": "obsidian"}})
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173", "http://localhost:8000", "https://localhost:8000"],  # Use your frontend's URL
+    allow_origins=[
+        "http://localhost:5173",
+        "https://localhost:5173",  # Add HTTPS frontend URL
+        "http://localhost:8000",
+        "https://localhost:8000",
+    ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
