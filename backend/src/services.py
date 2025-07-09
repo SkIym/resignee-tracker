@@ -8,7 +8,7 @@ from typing import Sequence, Mapping, Any
 import jwt
 import os
 import xlsxwriter
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, date
 
 headers = [
     "Employee no.", "Date hired", "Cost center", "Last Name", "First Name", "Middle Name",
@@ -67,12 +67,12 @@ def generate_xls_report(file: BytesIO, data: Sequence[Mapping[str, Any]]) -> Non
     try:
         for entry in data:
             
-            last_day = entry['Last day with AUB']
-            hr = entry['Date HR Emailed']
-            um = entry['Batch Deactivation from UM']
-            tp = entry['3rd party systems/apps']
-            em = entry['E-mails']
-            wn = entry['Windows']
+            last_day: date = entry['Last day with AUB']
+            hr: datetime = entry['Date HR Emailed']
+            um: date = entry['Batch Deactivation from UM']
+            tp: date = entry['3rd party systems/apps']
+            em: date = entry['E-mails']
+            wn: date = entry['Windows']
             processed = entry["Status"]
 
             details: list[Any] = [entry['Employee no.'],
@@ -84,12 +84,12 @@ def generate_xls_report(file: BytesIO, data: Sequence[Mapping[str, Any]]) -> Non
             entry['Position Title'],
             entry['Rank'],
             entry['Department'],
-            last_day,
-            hr,
-            um,
-            tp,
-            em,
-            wn,
+            last_day.strftime("%Y-%m-%d"),
+            hr.date(),
+            um.strftime("%Y-%m-%d"),
+            tp.strftime("%Y-%m-%d"),
+            em.strftime("%Y-%m-%d"),
+            wn.strftime("%Y-%m-%d"),
             entry['Remarks']]
             worksheet.write_row(i, 0, details)
 
@@ -129,43 +129,48 @@ async def verify_token(token: str):
     except jwt.PyJWTError as e:
         return None
 
-def decode_deactivation_date(date: str | None) -> str | None:
+def decode_deactivation_date(date: date | None) -> str | None:
     if date is None: return ""
-    if date < '2020-01-01': return "No Existing Account"
-    return date
 
-def is_late(resigned: str, deac: str | None, hr: str, acc: Account) -> bool:
-    
+    date_str = date.strftime("%Y-%m-%d")
+
+    if date_str < '2020-01-01': return "No Existing Account"
+    return date_str
+
+def is_late(resigned: date, deac: date | None, hr: datetime, acc: Account) -> bool:
     # Tag only if account exists or account has been deactivated
-    if (deac and deac > '2020-01-01'): 
-
-        resigned_d = datetime.strptime(resigned, "%Y-%m-%d").date()
-        deac_d = datetime.strptime(deac, "%Y-%m-%d").date()
-        hr_d = datetime.fromisoformat(hr).date()
+    if deac and deac > date(2020, 1, 1): 
+        resigned_d = resigned
+        deac_d = deac
+        hr_d = hr.date()
 
         match acc:
             case Account.UM:
                 # If HR email was delayed
-                if (resigned_d < hr_d): return True
+                if resigned_d < hr_d:
+                    return True
                 
                 # If UM account was deactivated later than last day
-                if (resigned_d < deac_d): return True
+                if resigned_d < deac_d:
+                    return True
                 
-                # Else, on time
                 return False
+
             case _:
-                # If employee last day on Friday and deactivated on or before Monday
-                if (resigned_d.weekday() == 4 and (deac_d.weekday() == 0 or deac_d.weekday() == 6)): return False
+                # If employee's last day was Friday and deactivated on or before Monday
+                if resigned_d.weekday() == 4 and deac_d.weekday() in (6, 0):
+                    return False
 
                 # If account was deactivated the day after last day of employee
-                if (resigned_d + timedelta(days=1)) == deac_d: return False
+                if resigned_d + timedelta(days=1) == deac_d:
+                    return False
 
                 # If account was deactivated on or before last day
-                if (resigned_d >= deac_d): return False
+                if resigned_d >= deac_d:
+                    return False
 
-                # Else, late
                 return True
-            
+
     return False
             
 

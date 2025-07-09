@@ -1,6 +1,6 @@
 from fastapi import APIRouter, HTTPException, Form, Depends
 from datetime import datetime
-from sqlmodel import Session
+from sqlmodel import Session, select
 from fastapi.responses import Response
 from database import get_engine
 from datetime import timedelta
@@ -8,6 +8,7 @@ import jwt
 import os
 from fastapi.requests import Request
 from models import Account
+from typing import Any
 
 auth_router = APIRouter(
     tags=["auth"]
@@ -17,9 +18,6 @@ def get_session():
     engine = get_engine()
     with Session(engine) as session:
         yield session
-
-from sqlmodel import Session, select
-from models import Account  # Assuming you have an Account model defined
 
 @auth_router.post("/login")
 async def login(
@@ -44,7 +42,7 @@ async def login(
             raise HTTPException(status_code=401, detail="Invalid username or password")
         
         # Generate JWT token
-        token_data = {
+        token_data: dict[str, Any] = {
             "sub": username,
             "exp": datetime.now() + timedelta(hours=12)
         }
