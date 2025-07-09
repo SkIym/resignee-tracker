@@ -19,3 +19,7 @@ class Resignee(SQLModel, table=True):
     windows_date_deac: datetime = Field(..., description="Windows Deactivation Date")
     remarks: str = Field(..., description="Remarks")
     date_hr_emailed: datetime = Field(..., description="Date HR emailed about resignation")
+
+class Account(SQLModel, table=True):
+    username: str = Field(primary_key=True)
+    password: str = Field(..., description="Password")
