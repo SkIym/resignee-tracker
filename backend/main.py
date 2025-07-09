@@ -27,8 +27,8 @@ def run_fastapi():
         "src.app:app",
         host="127.0.0.1",
         port=8000,
-        ssl_keyfile=resource_path("key.pem"),
-        ssl_certfile=resource_path("cert.pem")
+        # ssl_keyfile=resource_path("key.pem"),
+        # ssl_certfile=resource_path("cert.pem")
     )
 
 if __name__ == "__main__":
@@ -41,7 +41,7 @@ if __name__ == "__main__":
     # Create pywebview window
     window = webview.create_window(
         "AUB Resignee Tracker",
-        "https://localhost:8000",
+        "http://localhost:8000",
         width=1200,
         height=800,
         min_size=(800, 600),
