@@ -1,12 +1,11 @@
 from dotenv import load_dotenv
 load_dotenv()
 
-# list endpoints here
 from fastapi import APIRouter, HTTPException, Body, Path, Query
 from schemas import ResigneeDisplay, ResigneeCreate, Account, EditDate, Status
 from services import parse_resignee_text, generate_csv_report, generate_xls_report, is_late
 from datetime import datetime, timedelta
-from supabase_client import supabase
+from src.database import supabase
 from io import StringIO, BytesIO
 from fastapi.responses import Response
 from crypto_utils import encrypt_field, decrypt_field
