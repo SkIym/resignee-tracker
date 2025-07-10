@@ -88,32 +88,30 @@ async def logout(response: Response):
     )
     return {"message": "Successfully logged out"}
 
-# @auth_router.post("/accounts")
-# async def create_account(
-#     username: str = Form(...),
-#     password: str = Form(...),
-#     confirm_password: str = Form(...)
-# ):
-#     """
-#     Create a new account with encrypted password.
-#     Ensures no duplicate usernames and that passwords match.
-#     """
-#     try:
-#         if password != confirm_password:
-#             raise HTTPException(status_code=400, detail="Passwords do not match")
+@auth_router.post("/accounts")
+async def create_account(
+    username: str = Form(...),
+    password: str = Form(...),
+    session: Session = Depends(get_session)
+):
+    """
+    Create a new account.
+    Ensures no duplicate usernames.
+    """
+    try:
+        # Check for duplicate username
+        existing = session.exec(
+            select(Account).where(Account.username == username)
+        ).first()
+        if existing:
+            raise HTTPException(status_code=400, detail="Username already exists")
 
-#         # Check for duplicate username
-#         existing = supabase.table("Accounts") \
-#             .select("username") \
-#             .eq("username", username) \
-#             .execute()
-#         if existing.data and len(existing.data) > 0:
-#             raise HTTPException(status_code=400, detail="Username already exists")
+        # Save account with raw password (not recommended for production)
+        new_account = Account(username=username, password=password)
+        session.add(new_account)
+        session.commit()
 
-#         encrypted_password = encrypt_field(password)
-#         response = supabase.table("Accounts") \
-#             .insert({"username": username, "password": encrypted_password}) \
-#             .execute()
-#         return {"message": "Account created successfully"}
-#     except Exception as e:
-#         raise HTTPException(status_code=400, detail=str(e))
+        return {"message": "Account created successfully"}
+
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
