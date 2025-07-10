@@ -8,8 +8,20 @@ from routes import router
 from auth import auth_router
 from typing import Callable, Awaitable
 from database import initialize_engine, create_db_and_tables
+from contextlib import asynccontextmanager
+from pydantic import BaseModel
 
-app = FastAPI(swagger_ui_parameters={"syntaxHighlight": {"theme": "obsidian"}})
+# @asynccontextmanager
+# async def lifespan(app: FastAPI):
+#     initialize_engine()
+#     create_db_and_tables()
+#     yield
+
+
+app = FastAPI(
+    swagger_ui_parameters={"syntaxHighlight": {"theme": "obsidian"}},
+    # lifespan=lifespan
+)
 
 app.add_middleware(
     CORSMiddleware,
@@ -22,15 +34,18 @@ app.add_middleware(
 app.include_router(auth_router)
 app.include_router(router)
 
+class DBPath(BaseModel):
+    path: str
+
 @app.post("/db-path")
-async def initialize_db(db_path: str):
+async def set_db_path(body: DBPath):
     try:
-        initialize_engine(db_path)
+        initialize_engine(body.path)
         create_db_and_tables()
-        return {"message": f"Database initialized successfully at {db_path}"}
+        return {"message": f"Database initialized successfully at {body.path}"}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
-
+    
 @app.middleware("http")
 async def auth_middleware(request: Request, call_next: Callable[[Request], Awaitable[Response]]):
     if request.method == "OPTIONS":
