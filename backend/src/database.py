@@ -1,5 +1,5 @@
 from sqlmodel import create_engine, SQLModel
-import models
+import src.models
 from typing import Optional
 
 # Default values

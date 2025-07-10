@@ -1,4 +1,0 @@
-([('resignee_tracker',
-   '/Users/nathanielfeliciano/Documents/NIEL III/CS 195/project - '
-   'email/aub-resignee-tracker/backend/dist/resignee_tracker',
-   'EXECUTABLE')],)
