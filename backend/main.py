@@ -41,4 +41,4 @@ if __name__ == "__main__":
         js_api=api
     )
 
-    webview.start(gui='edgechromium', debug=True, http_server=True)
+    webview.start(gui='edgechromium', debug=False, http_server=True)
