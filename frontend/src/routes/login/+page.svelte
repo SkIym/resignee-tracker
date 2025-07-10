@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
 	import { onMount } from 'svelte';
+    import { BASE_URL } from '../../constants';
 
 	let username = '';
 	let password = '';
@@ -9,7 +10,7 @@
 
 	onMount(async () => {
 		try {
-			const res = await fetch('https://localhost:8000/check-auth', {
+			const res = await fetch(`${BASE_URL}/check-auth`, {
 				method: 'GET',
 				credentials: 'include'
 			});

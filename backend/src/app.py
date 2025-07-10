@@ -40,7 +40,6 @@ app.add_middleware(
 
 app.include_router(auth_router)
 app.include_router(router)
-app.include_router(db_router)
 
 class DBPath(BaseModel):
     path: str
