@@ -1,29 +1,33 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
-    import { BASE_URL } from '../constants';
+	import { BASE_URL } from '../constants';
 
-	let selectedFile: File | null = null;
+	let selectedPath = '';
 	let isLoading = false;
 	let errorMessage = '';
 	let successMessage = '';
 
-	const handleFileSelect = (event: Event) => {
-		const target = event.target as HTMLInputElement;
-		const file = target.files?.[0] || null;
-		
-		selectedFile = file;
-		errorMessage = '';
-		successMessage = '';
-		
-		if (file && !file.name.endsWith('.db')) {
-			errorMessage = 'Please select a valid .db file.';
-			selectedFile = null;
-			target.value = '';
+	const selectDatabase = async () => {
+		try {
+			const path = await (window as any).pywebview.api.select_file();
+			if (!path) {
+				errorMessage = 'No file selected.';
+				return;
+			}
+			if (!path.endsWith('.db')) {
+				errorMessage = 'Please select a valid .db file.';
+				return;
+			}
+			selectedPath = path;
+			errorMessage = '';
+			successMessage = '';
+		} catch (error) {
+			errorMessage = 'File dialog failed. ' + error;
 		}
 	};
 
 	const handleSubmit = async () => {
-		if (!selectedFile) {
+		if (!selectedPath) {
 			errorMessage = 'Please select a .db file first.';
 			return;
 		}
@@ -33,30 +37,22 @@
 		successMessage = '';
 
 		try {
-			const formData = new FormData();
-			formData.append("file", selectedFile);
-
 			const response = await fetch(`${BASE_URL}/db-path`, {
 				method: 'POST',
-				body: formData,
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({ path: selectedPath }),
 				credentials: 'include'
 			});
 
 			if (response.ok) {
-				successMessage = 'Database file uploaded successfully!';
-				setTimeout(() => {
-					goto('/login');
-				}, 1000);
+				successMessage = 'Database path accepted!';
+				setTimeout(() => goto('/login'), 1000);
 			} else {
 				const errorData = await response.text();
-				errorMessage = `Upload failed (${response.status}). ${errorData}`;
+				errorMessage = `Failed (${response.status}). ${errorData}`;
 			}
 		} catch (error) {
-			if (error instanceof Error) {
-				errorMessage = `Network error: ${error.message}. Please try again.`;
-			} else {
-				errorMessage = 'Network error: An unknown error occurred. Please try again.';
-			}
+			errorMessage = `Network error: ${error instanceof Error ? error.message : 'Unknown error'}`;
 		} finally {
 			isLoading = false;
 		}
@@ -75,24 +71,19 @@
 			</h1>
 			
 			<div class="space-y-4">
-				<div>
-					<label for="file-input" class="block text-sm font-medium text-gray-700 mb-2">
-						Choose Database File (.db)
-					</label>
-					<input
-						id="file-input"
-						type="file"
-						accept=".db"
-						on:change={handleFileSelect}
-						disabled={isLoading}
-						class="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg shadow-sm file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 transition-colors disabled:opacity-50"
-					/>
-				</div>
 
-				{#if selectedFile}
+				<!-- File selection button -->
+				<button
+					on:click={selectDatabase}
+					class="w-full py-2 px-4 bg-gray-500 hover:bg-gray-600 text-white rounded-md"
+				>
+					Select .db File
+				</button>
+
+				{#if selectedPath}
 					<div class="p-3 bg-green-50 border border-green-200 rounded-lg">
 						<p class="text-sm text-green-800">
-							<strong>Selected file:</strong> {selectedFile.name}
+							<strong>Selected path:</strong> {selectedPath}
 						</p>
 					</div>
 				{/if}
@@ -115,12 +106,13 @@
 
 				<button
 					on:click={handleSubmit}
-					disabled={!selectedFile || isLoading}
-					class="w-full py-2 px-4 bg-blue-500 hover:bg-blue-600 disabled:bg-blue-300 text-white font-medium rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors"
+					disabled={!selectedPath || isLoading}
+					class="w-full py-2 px-4 bg-blue-500 hover:bg-blue-600 text-white font-medium rounded-lg"
 				>
-					{isLoading ? 'Uploading...' : 'Upload Database'}
+					{isLoading ? 'Submitting...' : 'Submit Path'}
 				</button>
+
 			</div>
 		</div>
 	</div>
-</div> 
+</div>
