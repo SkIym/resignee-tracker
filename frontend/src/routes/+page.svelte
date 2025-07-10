@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
+    import { BASE_URL } from '../constants';
 	import { onMount } from 'svelte';
 
 	let username = '';
@@ -9,7 +10,7 @@
 
 	onMount(async () => {
 		try {
-			const res = await fetch('https://localhost:8000/check-auth', {
+			const res = await fetch(`${BASE_URL}/check-auth`, {
 				method: 'GET',
 				credentials: 'include'
 			});
@@ -34,7 +35,7 @@
 			formData.append('username', username);
 			formData.append('password', password);
 
-			const response = await fetch('https://localhost:8000/login', {
+			const response = await fetch(`${BASE_URL}/login`, {
 				method: 'POST',
 				headers: {
 					'Content-Type': 'application/x-www-form-urlencoded',

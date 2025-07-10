@@ -5,3 +5,5 @@ sqlmodel
 XlsxWriter
 cryptography
 openpyxl>=3.1.2
+pyinstaller
+webview

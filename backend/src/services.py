@@ -1,7 +1,7 @@
 # place parsing functions and other business logic here
 
 # Parsing function (from raw text from email to labeled data)
-from schemas import ResigneeCreate, Account, Status
+from src.schemas import ResigneeCreate, Account, Status
 from io import StringIO, BytesIO
 import csv
 from typing import Sequence, Mapping, Any

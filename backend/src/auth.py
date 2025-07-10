@@ -2,12 +2,12 @@ from fastapi import APIRouter, HTTPException, Form, Depends
 from datetime import datetime
 from sqlmodel import Session, select
 from fastapi.responses import Response
-from database import get_engine
+from src.database import get_engine
 from datetime import timedelta
 import jwt
 import os
 from fastapi.requests import Request
-from models import Account
+from src.models import Account
 from typing import Any
 
 auth_router = APIRouter(
