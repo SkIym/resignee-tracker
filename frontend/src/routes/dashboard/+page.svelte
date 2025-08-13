@@ -1,6 +1,7 @@
 <script lang="ts">
   import { onMount } from 'svelte';
-  import { goto } from '$app/navigation';
+  import { goto } from '$app/navigation'; 
+  import { BASE_URL } from '../../constants';
   import toast, { Toaster } from 'svelte-5-french-toast';
 
   import EmployeeTable from '$lib/EmployeeTable.svelte';
@@ -21,11 +22,10 @@
   let message = '';
   let response = '';
 
-  const BASE_URL = 'https://localhost:8000';
 
   onMount(async () => {
     try {
-      const res = await fetch('https://localhost:8000/check-auth', {
+      const res = await fetch(`${BASE_URL}/check-auth`, {
         method: 'GET',
         credentials: 'include'
       });

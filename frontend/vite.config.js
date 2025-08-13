@@ -4,6 +4,12 @@ import { defineConfig } from 'vite';
 export default defineConfig({
 	plugins: [sveltekit()],
 	server: {
+        proxy: {
+            '/api': {
+                target: 'http://localhost:8000', // FastAPI server
+                changeOrigin: true,
+            }
+        },
 		fs: {
 			allow: [
 				// Allow serving files from the project root

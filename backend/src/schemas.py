@@ -1,5 +1,6 @@
 from pydantic import BaseModel
 from enum import Enum, StrEnum
+
 class ResigneeDisplay(BaseModel):
     employee_no: str
     date_hired: str
@@ -37,6 +38,7 @@ class EditDate(BaseModel):
     message: str
     date: str
     late: bool
+    
 class Account(Enum):
     UM = 1
     TP = 2

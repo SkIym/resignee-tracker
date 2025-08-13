@@ -1,6 +1,9 @@
 fastapi[standard]
 uvicorn[standard]
 supabase
+sqlmodel
 XlsxWriter
 cryptography
 openpyxl>=3.1.2
+pyinstaller
+webview

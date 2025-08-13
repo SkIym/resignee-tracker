@@ -1,38 +1,48 @@
-from fastapi import APIRouter, HTTPException, Form
+from fastapi import APIRouter, HTTPException, Form, Depends
 from datetime import datetime
-from supabase_client import supabase
+from sqlmodel import Session, select
 from fastapi.responses import Response
+from src.database import get_engine
 from datetime import timedelta
-from crypto_utils import encrypt_field, decrypt_field
 import jwt
 import os
 from fastapi.requests import Request
+from src.models import Account
+from typing import Any
 
 auth_router = APIRouter(
     tags=["auth"]
 )
 
+def get_session():
+    engine = get_engine()
+    with Session(engine) as session:
+        yield session
+
 @auth_router.post("/login")
-async def login(response: Response, username: str = Form(...), password: str = Form(...)):
+async def login(
+    response: Response, 
+    username: str = Form(...), 
+    password: str = Form(...),
+    session: Session = Depends(get_session)):
     """
-    Login endpoint for Accounts table.
+    Login endpoint for Account table.
     """
     try:
-        db_response = supabase.table("Accounts") \
-            .select("*") \
-            .eq("username", username) \
-            .execute()
-        print(db_response)
-        if not db_response.data or len(db_response.data) == 0:
-            raise HTTPException(status_code=401, detail="Invalid username or password")
-        
-        account = db_response.data[0]  
-        get_password = (account["password"])
+        # Query the database using SQLModel
+        statement = select(Account).where(Account.username == username)
+        result = session.exec(statement)
+        account= result.first()
 
-        if password != get_password:
+        if not account:
             raise HTTPException(status_code=401, detail="Invalid username or password")
         
-        token_data = {
+        # Verify password (in a real app, use password hashing!)
+        if password != account.password:
+            raise HTTPException(status_code=401, detail="Invalid username or password")
+        
+        # Generate JWT token
+        token_data: dict[str, Any] = {
             "sub": username,
             "exp": datetime.now() + timedelta(hours=12)
         }
@@ -43,21 +53,20 @@ async def login(response: Response, username: str = Form(...), password: str = F
 
         token = jwt.encode(token_data, secret_key, "HS256")
         
+        # Set cookie
         response.set_cookie(
             key="access_token",
             value=f"Bearer {token}",
             httponly=True,
             max_age=3600 * 12,
-            secure=True,  # For HTTPS, toggle to True. For HTTP, to False
-            samesite="none" # For HTTPS, none. For HTTP, lax
+            secure=False,  # For HTTPS, toggle to True. For HTTP, to False
+            samesite="lax" # For HTTPS, none. For HTTP, lax
         )
 
-        print(response.headers)
-        
         return {"message": "Login successful"}
         
     except HTTPException as e:
-        raise e  # re-raise 401 or other intentional HTTPExceptions
+        raise e
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
@@ -83,28 +92,26 @@ async def logout(response: Response):
 async def create_account(
     username: str = Form(...),
     password: str = Form(...),
-    confirm_password: str = Form(...)
+    session: Session = Depends(get_session)
 ):
     """
-    Create a new account with encrypted password.
-    Ensures no duplicate usernames and that passwords match.
+    Create a new account.
+    Ensures no duplicate usernames.
     """
     try:
-        if password != confirm_password:
-            raise HTTPException(status_code=400, detail="Passwords do not match")
-
         # Check for duplicate username
-        existing = supabase.table("Accounts") \
-            .select("username") \
-            .eq("username", username) \
-            .execute()
-        if existing.data and len(existing.data) > 0:
+        existing = session.exec(
+            select(Account).where(Account.username == username)
+        ).first()
+        if existing:
             raise HTTPException(status_code=400, detail="Username already exists")
 
-        encrypted_password = encrypt_field(password)
-        response = supabase.table("Accounts") \
-            .insert({"username": username, "password": encrypted_password}) \
-            .execute()
+        # Save account with raw password (not recommended for production)
+        new_account = Account(username=username, password=password)
+        session.add(new_account)
+        session.commit()
+
         return {"message": "Account created successfully"}
+
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))

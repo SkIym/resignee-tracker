@@ -1,4 +1,6 @@
 <script lang="ts">
+  import { BASE_URL } from '../constants';
+
     export let employees: Employee[] = [];
     export let onstatustoggle: (event: { detail: { employee: Employee, action?: string } }) => void;
     export let onEmployeeUpdate: (() => void) | undefined = undefined;
@@ -117,22 +119,22 @@
             // Set endpoint based on the field being edited
             switch (key) {
                 case 'last_day':
-                    endpoint = `https://localhost:8000/resignees/${employee.employee_no}/last_day`;
+                    endpoint = `${BASE_URL}/resignees/${employee.employee_no}/last_day`;
                     break;
                 case 'um':
-                    endpoint = `https://localhost:8000/resignees/${employee.employee_no}/um`;
+                    endpoint = `${BASE_URL}/resignees/${employee.employee_no}/um`;
                     break;
                 case 'third_party':
-                    endpoint = `https://localhost:8000/resignees/${employee.employee_no}/third-party`;
+                    endpoint = `${BASE_URL}/resignees/${employee.employee_no}/third-party`;
                     break;
                 case 'email':
-                    endpoint = `https://localhost:8000/resignees/${employee.employee_no}/email`;
+                    endpoint = `${BASE_URL}/resignees/${employee.employee_no}/email`;
                     break;
                 case 'windows':
-                    endpoint = `https://localhost:8000/resignees/${employee.employee_no}/windows`;
+                    endpoint = `${BASE_URL}/resignees/${employee.employee_no}/windows`;
                     break;
                 case 'date_hr_emailed':
-                    endpoint = `https://localhost:8000/resignees/${employee.employee_no}/date_hr_emailed`;
+                    endpoint = `${BASE_URL}/resignees/${employee.employee_no}/date_hr_emailed`;
                     break;
                 default:
                     throw new Error(`Unknown field: ${key}`);
@@ -158,6 +160,8 @@
                 if (trimmed === 'NO_ACCOUNT') {
                     if (key in employees[idx]) {
                         (employees[idx] as any)[key] = '1900-01-01';
+                        const late_key = key.concat("_late") as keyof Employee;
+                        (employees[idx] as any)[late_key] = false
                     }
                 } else {
                     (employees[idx] as any)[key] = new Date(trimmed).toISOString();
@@ -166,11 +170,12 @@
                         (employees[idx] as any)[late_key] = data.late;
                     }
                 }
+
+                if (onEmployeeUpdate && (key === 'last_day' || key === 'date_hr_emailed')) {
+                    onEmployeeUpdate()
+                }
             }
             toast.success(succesxsessage);
-            if ((key === 'last_day' || key === 'date_hr_emailed') && onEmployeeUpdate) {
-                await onEmployeeUpdate();
-            }
 
         } catch (error) {
             console.error('Error updating field:', error);
@@ -199,7 +204,7 @@
         try {
             const trimmedRemarks = editingValue.trim();
 
-            const res = await fetch(`https://localhost:8000/resignees/${employee.employee_no}/remarks`, {
+            const res = await fetch(`${BASE_URL}/resignees/${employee.employee_no}/remarks`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'text/plain',
